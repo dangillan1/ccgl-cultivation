@@ -7,16 +7,62 @@
   },
   "config": {
     "users": [
-      { "name": "Dan", "role": "admin", "pw": "dabs" },
-      { "name": "Matt", "role": "admin", "pw": "veg" },
-      { "name": "David", "role": "admin", "pw": "flower" },
-      { "name": "Guest", "role": "guest", "pw": "growlab" }
+      {
+        "name": "Dan",
+        "role": "admin",
+        "pw": "dabs"
+      },
+      {
+        "name": "Matt",
+        "role": "admin",
+        "pw": "veg"
+      },
+      {
+        "name": "David",
+        "role": "admin",
+        "pw": "flower"
+      },
+      {
+        "name": "Guest",
+        "role": "guest",
+        "pw": "growlab"
+      }
     ],
-    "publish": { "owner": "dangillan1", "repo": "ccgl-cultivation", "branch": "main", "path": "state.json" },
+    "publish": {
+      "owner": "dangillan1",
+      "repo": "ccgl-cultivation",
+      "branch": "main",
+      "path": "state.json"
+    },
     "rooms": [
-      { "id": "F1", "name": "Flower 1", "lights": 118, "slots": 12, "clonesPerSlot": 90, "active": true, "color": "#4E9E8E" },
-      { "id": "F2", "name": "Flower 2", "lights": 118, "slots": 12, "clonesPerSlot": 90, "active": true, "color": "#4A90B5" },
-      { "id": "F3", "name": "Flower 3", "lights": 77, "slots": 12, "clonesPerSlot": 59, "active": false, "color": "#9b59b6", "note": "Online target end of 2026. 77 lights vs 118 in F1/F2 — clones/slot scaled at 77/118 of 90 ≈ 59." }
+      {
+        "id": "F1",
+        "name": "Flower 1",
+        "lights": 118,
+        "slots": 12,
+        "clonesPerSlot": 90,
+        "active": true,
+        "color": "#4E9E8E"
+      },
+      {
+        "id": "F2",
+        "name": "Flower 2",
+        "lights": 118,
+        "slots": 12,
+        "clonesPerSlot": 90,
+        "active": true,
+        "color": "#4A90B5"
+      },
+      {
+        "id": "F3",
+        "name": "Flower 3",
+        "lights": 77,
+        "slots": 12,
+        "clonesPerSlot": 59,
+        "active": false,
+        "color": "#9b59b6",
+        "note": "Online target end of 2026. 77 lights vs 118 in F1/F2 — clones/slot scaled at 77/118 of 90 ≈ 59."
+      }
     ],
     "defaults": {
       "flowerDays": 65,
@@ -37,207 +83,871 @@
       "harvestProximityDays": 2
     },
     "holidays": [
-      { "date": "2026-09-07", "name": "Labor Day" },
-      { "date": "2026-11-26", "name": "Thanksgiving" },
-      { "date": "2026-11-27", "name": "Day after Thanksgiving" },
-      { "date": "2026-12-24", "name": "Christmas Eve" },
-      { "date": "2026-12-25", "name": "Christmas" },
-      { "date": "2027-01-01", "name": "New Year's Day" },
-      { "date": "2027-05-31", "name": "Memorial Day" },
-      { "date": "2027-07-05", "name": "July 4th (observed)" },
-      { "date": "2027-09-06", "name": "Labor Day" },
-      { "date": "2027-11-25", "name": "Thanksgiving" }
+      {
+        "date": "2026-09-07",
+        "name": "Labor Day"
+      },
+      {
+        "date": "2026-11-26",
+        "name": "Thanksgiving"
+      },
+      {
+        "date": "2026-11-27",
+        "name": "Day after Thanksgiving"
+      },
+      {
+        "date": "2026-12-24",
+        "name": "Christmas Eve"
+      },
+      {
+        "date": "2026-12-25",
+        "name": "Christmas"
+      },
+      {
+        "date": "2027-01-01",
+        "name": "New Year's Day"
+      },
+      {
+        "date": "2027-05-31",
+        "name": "Memorial Day"
+      },
+      {
+        "date": "2027-07-05",
+        "name": "July 4th (observed)"
+      },
+      {
+        "date": "2027-09-06",
+        "name": "Labor Day"
+      },
+      {
+        "date": "2027-11-25",
+        "name": "Thanksgiving"
+      }
     ]
   },
   "strains": [
-    { "name": "Alien Marker", "category": "Dessert", "abbr": "ALM" },
-    { "name": "Applescotti", "category": "Dessert", "abbr": "APL" },
-    { "name": "Baby Yoda", "category": "Gas", "abbr": "BBY" },
-    { "name": "Beach Cooler", "category": "", "abbr": "BCH" },
-    { "name": "Black Maple", "category": "Hash", "abbr": "BLA" },
-    { "name": "Blue Andeze", "category": "Dessert", "abbr": "BAN" },
-    { "name": "Blueberry Sugar", "category": "Fruit", "abbr": "BBS" },
-    { "name": "Bob Hope (Lemon Durbscotti)", "category": "Fruit", "abbr": "BOB" },
-    { "name": "Candy Fumez x Grape Gas", "category": "Candy Gas", "abbr": "CFG" },
-    { "name": "Cape White Shark", "category": "Green", "abbr": "CWS" },
-    { "name": "Chamoy", "category": "Dessert", "abbr": "CHM" },
-    { "name": "Double Runtz", "category": "Candy Gas", "abbr": "DRU" },
-    { "name": "Garlic Slushee", "category": "Stank", "abbr": "GSL" },
-    { "name": "Gelato 41 x Jealousy", "category": "Candy Gas", "abbr": "J41" },
-    { "name": "Golden Lemons", "category": "Fruit", "abbr": "GLD" },
-    { "name": "Heir Heads", "category": "Candy Gas", "abbr": "HEH" },
-    { "name": "Hellcat", "category": "", "abbr": "HEL" },
-    { "name": "LA Runtz", "category": "Dessert", "abbr": "LAR" },
-    { "name": "Lemon Cherry Sherbert", "category": "Dessert", "abbr": "LCS" },
-    { "name": "Lemon Pastries", "category": "Fruit", "abbr": "LPS" },
-    { "name": "Lion's Breath", "category": "Candy Gas", "abbr": "LIB" },
-    { "name": "Mac10", "category": "", "abbr": "M10" },
-    { "name": "Midnight", "category": "Dessert", "abbr": "MID" },
-    { "name": "Papa Burger", "category": "", "abbr": "PBG" },
-    { "name": "Papaya Bx", "category": "Fruit", "abbr": "PAP" },
-    { "name": "Pie Hoe", "category": "", "abbr": "PIE" },
-    { "name": "Purple Push Pop", "category": "Fruit", "abbr": "PPP" },
-    { "name": "Rainbow Guava", "category": "Fruit", "abbr": "RGV" },
-    { "name": "Razzle", "category": "", "abbr": "RZL" },
-    { "name": "Red Pop", "category": "Fruit", "abbr": "RDP" },
-    { "name": "Sour Diesel", "category": "Gas", "abbr": "SDL" },
-    { "name": "Super Runtz", "category": "Candy Gas", "abbr": "SRU" },
-    { "name": "Swampwater Fumez", "category": "Stank", "abbr": "SWF" },
-    { "name": "The Bodhi", "category": "", "abbr": "BOD" },
-    { "name": "Trap Fuel", "category": "Gas", "abbr": "TRF" },
-    { "name": "Velvet Pound Cake", "category": "Dessert", "abbr": "VPC" },
-    { "name": "Zoap", "category": "Candy Gas", "abbr": "ZOA" },
-    { "name": "Zowah", "category": "Fruit", "abbr": "ZOW" }
+    {
+      "name": "Alien Marker",
+      "category": "Dessert",
+      "abbr": "ALM"
+    },
+    {
+      "name": "Applescotti",
+      "category": "Dessert",
+      "abbr": "APL"
+    },
+    {
+      "name": "Baby Yoda",
+      "category": "Gas",
+      "abbr": "BBY"
+    },
+    {
+      "name": "Beach Cooler",
+      "category": "",
+      "abbr": "BCH"
+    },
+    {
+      "name": "Black Maple",
+      "category": "Hash",
+      "abbr": "BLA"
+    },
+    {
+      "name": "Blue Andeze",
+      "category": "Dessert",
+      "abbr": "BAN"
+    },
+    {
+      "name": "Blueberry Sugar",
+      "category": "Fruit",
+      "abbr": "BBS"
+    },
+    {
+      "name": "Bob Hope (Lemon Durbscotti)",
+      "category": "Fruit",
+      "abbr": "BOB"
+    },
+    {
+      "name": "Candy Fumez x Grape Gas",
+      "category": "Candy Gas",
+      "abbr": "CFG"
+    },
+    {
+      "name": "Cape White Shark",
+      "category": "Green",
+      "abbr": "CWS"
+    },
+    {
+      "name": "Chamoy",
+      "category": "Dessert",
+      "abbr": "CHM"
+    },
+    {
+      "name": "Double Runtz",
+      "category": "Candy Gas",
+      "abbr": "DRU"
+    },
+    {
+      "name": "Garlic Slushee",
+      "category": "Stank",
+      "abbr": "GSL"
+    },
+    {
+      "name": "Gelato 41 x Jealousy",
+      "category": "Candy Gas",
+      "abbr": "J41"
+    },
+    {
+      "name": "Golden Lemons",
+      "category": "Fruit",
+      "abbr": "GLD"
+    },
+    {
+      "name": "Heir Heads",
+      "category": "Candy Gas",
+      "abbr": "HEH"
+    },
+    {
+      "name": "Hellcat",
+      "category": "",
+      "abbr": "HEL"
+    },
+    {
+      "name": "LA Runtz",
+      "category": "Dessert",
+      "abbr": "LAR"
+    },
+    {
+      "name": "Lemon Cherry Sherbert",
+      "category": "Dessert",
+      "abbr": "LCS"
+    },
+    {
+      "name": "Lemon Pastries",
+      "category": "Fruit",
+      "abbr": "LPS"
+    },
+    {
+      "name": "Lion's Breath",
+      "category": "Candy Gas",
+      "abbr": "LIB"
+    },
+    {
+      "name": "Mac10",
+      "category": "",
+      "abbr": "M10"
+    },
+    {
+      "name": "Midnight",
+      "category": "Dessert",
+      "abbr": "MID"
+    },
+    {
+      "name": "Papa Burger",
+      "category": "",
+      "abbr": "PBG"
+    },
+    {
+      "name": "Papaya Bx",
+      "category": "Fruit",
+      "abbr": "PAP"
+    },
+    {
+      "name": "Pie Hoe",
+      "category": "",
+      "abbr": "PIE"
+    },
+    {
+      "name": "Purple Push Pop",
+      "category": "Fruit",
+      "abbr": "PPP"
+    },
+    {
+      "name": "Rainbow Guava",
+      "category": "Fruit",
+      "abbr": "RGV"
+    },
+    {
+      "name": "Razzle",
+      "category": "",
+      "abbr": "RZL"
+    },
+    {
+      "name": "Red Pop",
+      "category": "Fruit",
+      "abbr": "RDP"
+    },
+    {
+      "name": "Sour Diesel",
+      "category": "Gas",
+      "abbr": "SDL"
+    },
+    {
+      "name": "Super Runtz",
+      "category": "Candy Gas",
+      "abbr": "SRU"
+    },
+    {
+      "name": "Swampwater Fumez",
+      "category": "Stank",
+      "abbr": "SWF"
+    },
+    {
+      "name": "The Bodhi",
+      "category": "",
+      "abbr": "BOD"
+    },
+    {
+      "name": "Trap Fuel",
+      "category": "Gas",
+      "abbr": "TRF"
+    },
+    {
+      "name": "Velvet Pound Cake",
+      "category": "Dessert",
+      "abbr": "VPC"
+    },
+    {
+      "name": "Zoap",
+      "category": "Candy Gas",
+      "abbr": "ZOA"
+    },
+    {
+      "name": "Zowah",
+      "category": "Fruit",
+      "abbr": "ZOW"
+    }
   ],
   "cycles": [
     {
-      "id": "F1H06", "room": "F1", "archived": true, "estimated": true,
-      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": null, "flowerDay1": "2025-06-26" },
-      "overrides": { "ffHarvestStart": "2025-08-25", "harvestStart": "2025-08-27", "harvestEnd": "2025-08-29" },
+      "id": "F1H06",
+      "room": "F1",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": null,
+        "transplantRack": null,
+        "transplantRoom": null,
+        "flowerDay1": "2025-06-26"
+      },
+      "overrides": {
+        "ffHarvestStart": "2025-08-25",
+        "harvestStart": "2025-08-27",
+        "harvestEnd": "2025-08-29"
+      },
       "notes": "Imported from sheet. Defoles ran 7/16-24, 8/6-12."
     },
     {
-      "id": "F1H07", "room": "F1", "archived": true, "estimated": true,
-      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2025-09-11", "flowerDay1": "2025-10-03" },
-      "overrides": { "harvestStart": "2025-12-04", "harvestEnd": "2025-12-05" },
+      "id": "F1H07",
+      "room": "F1",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": null,
+        "transplantRack": null,
+        "transplantRoom": "2025-09-11",
+        "flowerDay1": "2025-10-03"
+      },
+      "overrides": {
+        "harvestStart": "2025-12-04",
+        "harvestEnd": "2025-12-05"
+      },
       "notes": "Imported from sheet. Transplant 9/11-12 after flip; defoles 10/23-26 (d21) and 11/13-16 (d42)."
     },
     {
-      "id": "F1H08", "room": "F1", "archived": true, "estimated": true,
-      "dates": { "cloneCut": "2025-11-25", "transplantRack": null, "transplantRoom": "2025-12-08", "flowerDay1": "2025-12-16" },
-      "overrides": { "ffHarvestStart": null, "harvestStart": "2026-02-25", "harvestEnd": "2026-02-27" },
+      "id": "F1H08",
+      "room": "F1",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2025-11-25",
+        "transplantRack": null,
+        "transplantRoom": "2025-12-08",
+        "flowerDay1": "2025-12-16"
+      },
+      "overrides": {
+        "ffHarvestStart": null,
+        "harvestStart": "2026-02-25",
+        "harvestEnd": "2026-02-27"
+      },
       "notes": "Imported from sheet. Clones 11/25-12/7 in-house; defoles 1/15-20 and 2/5-11; harvest 2/25-27."
     },
     {
-      "id": "F2H07", "room": "F2", "archived": true, "estimated": true,
-      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2025-07-31", "flowerDay1": "2025-08-13" },
-      "overrides": { "harvestStart": "2025-10-14", "harvestEnd": "2025-10-15", "flipStart": "2025-10-16", "flipEnd": "2025-10-31" },
+      "id": "F2H07",
+      "room": "F2",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": null,
+        "transplantRack": null,
+        "transplantRoom": "2025-07-31",
+        "flowerDay1": "2025-08-13"
+      },
+      "overrides": {
+        "harvestStart": "2025-10-14",
+        "harvestEnd": "2025-10-15",
+        "flipStart": "2025-10-16",
+        "flipEnd": "2025-10-31"
+      },
       "notes": "Imported from sheet. Flip extended for VAS install + full room clean (10/16-31)."
     },
     {
-      "id": "F2H08", "room": "F2", "archived": true, "estimated": true,
-      "dates": { "cloneCut": "2026-01-08", "transplantRack": "2026-01-28", "transplantRoom": "2026-02-04", "flowerDay1": "2026-02-09" },
-      "overrides": { "harvestStart": "2026-04-14", "harvestEnd": "2026-04-16", "flipStart": "2026-04-17", "flipEnd": "2026-04-19" },
+      "id": "F2H08",
+      "room": "F2",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2026-01-08",
+        "transplantRack": "2026-01-28",
+        "transplantRoom": "2026-02-04",
+        "flowerDay1": "2026-02-09"
+      },
+      "overrides": {
+        "harvestStart": "2026-04-14",
+        "harvestEnd": "2026-04-16",
+        "flipStart": "2026-04-17",
+        "flipEnd": "2026-04-19"
+      },
       "notes": "Imported from sheet. Cut 1/8-9, clone 18 days, veg on rack 1/28-2/3, defoles 3/2-6 (d21) and 3/23-27 (d42)."
     },
     {
-      "id": "F2H09", "room": "F2", "archived": true, "estimated": true,
-      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2026-04-20", "flowerDay1": "2026-04-29" },
-      "overrides": { "harvestStart": "2026-07-06", "harvestEnd": "2026-07-08" },
+      "id": "F2H09",
+      "room": "F2",
+      "archived": true,
+      "estimated": true,
+      "dates": {
+        "cloneCut": null,
+        "transplantRack": null,
+        "transplantRoom": "2026-04-20",
+        "flowerDay1": "2026-04-29"
+      },
+      "overrides": {
+        "harvestStart": "2026-07-06",
+        "harvestEnd": "2026-07-08"
+      },
       "notes": "Imported from sheet — harvest dates estimated (day ~68-70); room flipped by 7/15 for F2H10 rack transplant."
     },
     {
-      "id": "F1H09", "room": "F1", "archived": false, "estimated": false,
-      "dates": { "cloneCut": "2026-05-06", "transplantRack": "2026-05-28", "transplantRoom": "2026-06-16", "flowerDay1": "2026-06-16" },
-      "overrides": { "ffHarvestStart": "2026-08-17", "harvestStart": "2026-08-19", "harvestEnd": "2026-08-21" },
+      "id": "F1H09",
+      "room": "F1",
+      "archived": false,
+      "estimated": false,
+      "dates": {
+        "cloneCut": "2026-05-06",
+        "transplantRack": "2026-05-28",
+        "transplantRoom": "2026-06-16",
+        "flowerDay1": "2026-06-16"
+      },
+      "overrides": {
+        "ffHarvestStart": "2026-08-17",
+        "harvestStart": "2026-08-19",
+        "harvestEnd": "2026-08-21"
+      },
       "notes": "Current F1 cycle. FF harvest 8/17-18, dry harvest 8/19-21 per sheet plan. Veg 5/29-6/13 on rack."
     },
     {
-      "id": "F2H10", "room": "F2", "archived": false, "estimated": true,
-      "dates": { "cloneCut": "2026-06-24", "transplantRack": "2026-07-15", "transplantRoom": "2026-07-25", "flowerDay1": "2026-07-25" },
+      "id": "F2H10",
+      "room": "F2",
+      "archived": false,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2026-06-24",
+        "transplantRack": "2026-07-15",
+        "transplantRoom": "2026-07-25",
+        "flowerDay1": "2026-07-25"
+      },
       "overrides": {},
       "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated at 7/25 from sheet — confirm."
     },
     {
-      "id": "F1H10", "room": "F1", "archived": false, "estimated": true,
-      "dates": { "cloneCut": "2026-08-13", "transplantRack": "2026-09-03", "transplantRoom": "2026-09-10", "flowerDay1": "2026-09-11" },
+      "id": "F1H10",
+      "room": "F1",
+      "archived": false,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2026-08-13",
+        "transplantRack": "2026-09-03",
+        "transplantRoom": "2026-09-10",
+        "flowerDay1": "2026-09-11"
+      },
       "overrides": {},
       "notes": "Next F1 cycle. Sheet: transplant to F1 9/10 (hold The Bodhi & Alien Marker on rack until flower day 7 = 9/21); defoles w/ PH planned 9/27-10/1. Sheet's code row says F2H10 from 9/11 — typo, this is F1H10. Rack date estimated."
     }
   ],
   "cloneOrders": [
     {
-      "id": "co-2025-09-08-F1", "room": "F1", "cutDate": null, "transplantDate": "2025-09-08", "status": "done", "imported": true,
+      "id": "co-2025-09-08-F1",
+      "room": "F1",
+      "cutDate": null,
+      "transplantDate": "2025-09-08",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Alien Marker" }, { "loc": "Row 1 Top", "strain": "Alien Marker" },
-        { "loc": "Row 2 Bottom", "strain": "Alien Marker" }, { "loc": "Row 2 Top", "strain": "Hellcat" },
-        { "loc": "Row 3 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 3 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 4 Bottom", "strain": "Candy Fumez x Grape Gas" }, { "loc": "Row 4 Top", "strain": "Bob Hope (Lemon Durbscotti)" },
-        { "loc": "Row 5 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 5 Top", "strain": "" },
-        { "loc": "Row 6 Bottom", "strain": "" }, { "loc": "Row 6 Top", "strain": "Applescotti" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Hellcat"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Candy Fumez x Grape Gas"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Bob Hope (Lemon Durbscotti)"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Cape White Shark"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Applescotti"
+        }
       ],
       "notes": "Imported — partial strain map recovered from sheet."
     },
     {
-      "id": "co-2025-11-10-F2", "room": "F2", "cutDate": "2025-10-20", "transplantDate": "2025-11-10", "status": "done", "imported": true,
+      "id": "co-2025-11-10-F2",
+      "room": "F2",
+      "cutDate": "2025-10-20",
+      "transplantDate": "2025-11-10",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Lemon Cherry Sherbert" }, { "loc": "Row 2 Top", "strain": "Lemon Cherry Sherbert" },
-        { "loc": "Row 3 Bottom", "strain": "Double Runtz" }, { "loc": "Row 3 Top", "strain": "Double Runtz" },
-        { "loc": "Row 4 Bottom", "strain": "Gelato 41 x Jealousy" }, { "loc": "Row 4 Top", "strain": "Candy Fumez x Grape Gas" },
-        { "loc": "Row 5 Bottom", "strain": "Beach Cooler", "note": "swapped for CWS" }, { "loc": "Row 5 Top", "strain": "Beach Cooler", "note": "swapped for CWS" },
-        { "loc": "Row 6 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 6 Top", "strain": "Purple Push Pop" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Lemon Cherry Sherbert"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Lemon Cherry Sherbert"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Double Runtz"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Double Runtz"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Gelato 41 x Jealousy"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Candy Fumez x Grape Gas"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Beach Cooler",
+          "note": "swapped for CWS"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Beach Cooler",
+          "note": "swapped for CWS"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Purple Push Pop"
+        }
       ]
     },
     {
-      "id": "co-2025-11-27-F1", "room": "F1", "cutDate": null, "transplantDate": "2025-11-27", "status": "done", "imported": true,
+      "id": "co-2025-11-27-F1",
+      "room": "F1",
+      "cutDate": null,
+      "transplantDate": "2025-11-27",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 2 Top", "strain": "Cape White Shark" },
-        { "loc": "Row 3 Bottom", "strain": "Lemon Cherry Sherbert" }, { "loc": "Row 3 Top", "strain": "Double Runtz" },
-        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
-        { "loc": "Row 5 Bottom", "strain": "Zowah" }, { "loc": "Row 5 Top", "strain": "Baby Yoda" },
-        { "loc": "Row 6 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 6 Top", "strain": "Alien Marker" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Cape White Shark"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Cape White Shark"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Lemon Cherry Sherbert"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Double Runtz"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Zowah"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Baby Yoda"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Blue Andeze"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Alien Marker"
+        }
       ],
       "notes": "V3 w/ Cam's options; delayed transplant for fan install."
     },
     {
-      "id": "co-2026-02-02-F2", "room": "F2", "cutDate": "2026-01-08", "transplantDate": "2026-02-02", "status": "done", "imported": true,
+      "id": "co-2026-02-02-F2",
+      "room": "F2",
+      "cutDate": "2026-01-08",
+      "transplantDate": "2026-02-02",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Heir Heads" }, { "loc": "Row 2 Top", "strain": "Super Runtz" },
-        { "loc": "Row 3 Bottom", "strain": "Purple Push Pop", "note": "Applescotti swapped for PPP" }, { "loc": "Row 3 Top", "strain": "Baby Yoda" },
-        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Lemon Cherry Sherbert" },
-        { "loc": "Row 5 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 5 Top", "strain": "Purple Push Pop" },
-        { "loc": "Row 6 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 6 Top", "strain": "Blue Andeze" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Heir Heads"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Super Runtz"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Purple Push Pop",
+          "note": "Applescotti swapped for PPP"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Baby Yoda"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Lemon Cherry Sherbert"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Blue Andeze"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Blue Andeze"
+        }
       ],
       "notes": "Final (V3) version of the 2/2/26 F2 order."
     },
     {
-      "id": "co-2026-03-23-F1", "room": "F1", "cutDate": "2026-02-13", "transplantDate": "2026-03-23", "status": "done", "imported": true,
+      "id": "co-2026-03-23-F1",
+      "room": "F1",
+      "cutDate": "2026-02-13",
+      "transplantDate": "2026-03-23",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 1 Top", "strain": "Blue Andeze" },
-        { "loc": "Row 2 Bottom", "strain": "Alien Marker" }, { "loc": "Row 2 Top", "strain": "Alien Marker" },
-        { "loc": "Row 3 Bottom", "strain": "Rainbow Guava / Swampwater Fumez / Black Maple (1/3 row each)", "note": "FF" }, { "loc": "Row 3 Top", "strain": "The Bodhi" },
-        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
-        { "loc": "Row 5 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 5 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 6 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 6 Top", "strain": "Alien Marker + Rainbow Guava (hash)" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Blue Andeze"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Blue Andeze"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Rainbow Guava / Swampwater Fumez / Black Maple (1/3 row each)",
+          "note": "FF"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "The Bodhi"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Alien Marker + Rainbow Guava (hash)"
+        }
       ],
       "notes": "FINAL CHANGES column from sheet."
     },
     {
-      "id": "co-2026-05-06-F1", "room": "F1", "cutDate": "2026-05-06", "transplantDate": "2026-06-16", "status": "done", "imported": true,
+      "id": "co-2026-05-06-F1",
+      "room": "F1",
+      "cutDate": "2026-05-06",
+      "transplantDate": "2026-06-16",
+      "status": "done",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 3 Bottom", "strain": "Super Runtz" }, { "loc": "Row 3 Top", "strain": "Super Runtz" },
-        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
-        { "loc": "Row 5 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 5 Top", "strain": "Golden Lemons / Garlic Slushee (1/2 each)" },
-        { "loc": "Row 6 Bottom", "strain": "Black Maple" }, { "loc": "Row 6 Top", "strain": "Alien Marker" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Super Runtz"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Super Runtz"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Blue Andeze"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Golden Lemons / Garlic Slushee (1/2 each)"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Black Maple"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Alien Marker"
+        }
       ],
       "notes": "Feeds F1H09."
     },
     {
-      "id": "co-2026-06-24-F2", "room": "F2", "cutDate": "2026-06-24", "transplantDate": "2026-07-25", "status": "cut", "imported": true,
+      "id": "co-2026-06-24-F2",
+      "room": "F2",
+      "cutDate": "2026-06-24",
+      "transplantDate": "2026-07-25",
+      "status": "cut",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Garlic Slushee" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 3 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 3 Top", "strain": "Rainbow Guava", "note": "1/2 FF" },
-        { "loc": "Row 4 Bottom", "strain": "The Bodhi" }, { "loc": "Row 4 Top", "strain": "Alien Marker" },
-        { "loc": "Row 5 Bottom", "strain": "Black Maple" }, { "loc": "Row 5 Top", "strain": "Black Maple / Swampwater Fumez (1/2 each)" },
-        { "loc": "Row 6 Bottom", "strain": "Swampwater Fumez" }, { "loc": "Row 6 Top", "strain": "Papaya Bx", "note": "Full FF" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Garlic Slushee"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Cape White Shark"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Rainbow Guava",
+          "note": "1/2 FF"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "The Bodhi"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Alien Marker"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Black Maple"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Black Maple / Swampwater Fumez (1/2 each)"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Swampwater Fumez"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Papaya Bx",
+          "note": "Full FF"
+        }
       ],
       "notes": "Feeds F2H10."
     },
     {
-      "id": "co-2026-08-13-F1", "room": "F1", "cutDate": "2026-08-13", "transplantDate": "2026-09-10", "status": "planned", "imported": true,
+      "id": "co-2026-08-13-F1",
+      "room": "F1",
+      "cutDate": "2026-08-13",
+      "transplantDate": "2026-09-10",
+      "status": "planned",
+      "imported": true,
       "slots": [
-        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 2 Bottom", "strain": "Trap Fuel / Lion's Breath (1/2 each)" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
-        { "loc": "Row 3 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 3 Top", "strain": "Purple Push Pop" },
-        { "loc": "Row 4 Bottom", "strain": "Golden Lemons" }, { "loc": "Row 4 Top", "strain": "Lemon Cherry Sherbert" },
-        { "loc": "Row 5 Bottom", "strain": "Black Maple" }, { "loc": "Row 5 Top", "strain": "Black Maple" },
-        { "loc": "Row 6 Bottom", "strain": "Lemon Pastries / Razzle (1/2 each)" }, { "loc": "Row 6 Top", "strain": "Papa Burger / Mac10 (1/2 each)" }
+        {
+          "loc": "Row 1 Bottom",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": "Trap Fuel / Lion's Breath (1/2 each)"
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": "Lion's Breath"
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": "Purple Push Pop"
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": "Golden Lemons"
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": "Lemon Cherry Sherbert"
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": "Black Maple"
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": "Black Maple"
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": "Lemon Pastries / Razzle (1/2 each)"
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": "Papa Burger / Mac10 (1/2 each)"
+        }
       ],
       "notes": "Feeds F1H10."
     }
