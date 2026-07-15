@@ -25,7 +25,7 @@
       {
         "name": "Guest",
         "role": "guest",
-        "pw": "ccgl"
+        "pw": "growlab"
       }
     ],
     "publish": {
@@ -448,7 +448,7 @@
       "id": "F2H10",
       "room": "F2",
       "archived": false,
-      "estimated": false,
+      "estimated": true,
       "dates": {
         "cloneCut": "2026-06-24",
         "transplantRack": "2026-07-15",
@@ -456,7 +456,7 @@
         "flowerDay1": "2026-07-25"
       },
       "overrides": {},
-      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated 7/25"
+      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated at 7/25 from sheet — confirm."
     },
     {
       "id": "F1H10",
@@ -951,5 +951,149 @@
       ],
       "notes": "Feeds F1H10."
     }
-  ]
+  ],
+  "mock": {
+    "settings": {
+      "anchor": "2026-09-11",
+      "staggerDays": 25,
+      "perRoom": 3
+    },
+    "cycles": [
+      {
+        "id": "P·F1-1",
+        "room": "F1",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-08-11",
+          "transplantRack": "2026-09-01",
+          "transplantRoom": "2026-09-11",
+          "flowerDay1": "2026-09-11"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F1-2",
+        "room": "F1",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-10-19",
+          "transplantRack": "2026-11-09",
+          "transplantRoom": "2026-11-19",
+          "flowerDay1": "2026-11-19"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F1-3",
+        "room": "F1",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-12-27",
+          "transplantRack": "2027-01-17",
+          "transplantRoom": "2027-01-27",
+          "flowerDay1": "2027-01-27"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F2-1",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-09-05",
+          "transplantRack": "2026-09-26",
+          "transplantRoom": "2026-10-06",
+          "flowerDay1": "2026-10-06"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F2-2",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-11-13",
+          "transplantRack": "2026-12-04",
+          "transplantRoom": "2026-12-14",
+          "flowerDay1": "2026-12-14"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F2-3",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2027-01-21",
+          "transplantRack": "2027-02-11",
+          "transplantRoom": "2027-02-21",
+          "flowerDay1": "2027-02-21"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F3-1",
+        "room": "F3",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-09-30",
+          "transplantRack": "2026-10-21",
+          "transplantRoom": "2026-10-31",
+          "flowerDay1": "2026-10-31"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F3-2",
+        "room": "F3",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-12-08",
+          "transplantRack": "2026-12-29",
+          "transplantRoom": "2027-01-08",
+          "flowerDay1": "2027-01-08"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F3-3",
+        "room": "F3",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2027-02-15",
+          "transplantRack": "2027-03-08",
+          "transplantRoom": "2027-03-18",
+          "flowerDay1": "2027-03-18"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      }
+    ]
+  }
 }
