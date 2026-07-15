@@ -3,7 +3,7 @@
     "app": "CCGL Cultivation Schedule",
     "version": 1,
     "updatedAt": "2026-07-15",
-    "updatedBy": "seed-import"
+    "updatedBy": "Dan"
   },
   "config": {
     "users": [
@@ -25,7 +25,7 @@
       {
         "name": "Guest",
         "role": "guest",
-        "pw": "growlab"
+        "pw": "ccgl"
       }
     ],
     "publish": {
@@ -448,7 +448,7 @@
       "id": "F2H10",
       "room": "F2",
       "archived": false,
-      "estimated": true,
+      "estimated": false,
       "dates": {
         "cloneCut": "2026-06-24",
         "transplantRack": "2026-07-15",
@@ -456,7 +456,7 @@
         "flowerDay1": "2026-07-25"
       },
       "overrides": {},
-      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated at 7/25 from sheet — confirm."
+      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated 7/25"
     },
     {
       "id": "F1H10",
