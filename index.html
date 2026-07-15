@@ -201,7 +201,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   <div class="sidebar">
     <div class="brand"><div class="t1">CCGL</div><div class="t2">Cultivation</div></div>
     <div class="nav">
-      <a href="javascript:nav('timeline')" data-v="timeline" class="active">📅 <span class="txt">Timeline</span></a>
+      <a href="javascript:nav('timeline')" data-v="timeline" class="active">📅 <span class="txt">F1/F2 Production Calendar</span></a>
       <a href="javascript:nav('planner')" data-v="planner">🧪 <span class="txt">3-Room Planner</span></a>
       <a href="javascript:nav('cycles')" data-v="cycles">🔁 <span class="txt">Cycles</span></a>
       <a href="javascript:nav('orders')" data-v="orders">✂️ <span class="txt">Clone Orders</span></a>
@@ -668,6 +668,7 @@ function logout(){ sessionStorage.removeItem(SS_USER); location.reload(); }
 function enterApp(){
   $('#login').style.display='none'; $('#app').classList.add('on');
   $('#who').textContent=USER.name+' · '+(isAdmin()?'editor':'view only');
+  if(!isAdmin()) $$('.nav a').forEach(a=>{ if(a.dataset.v==='planner'||a.dataset.v==='settings') a.style.display='none'; });
   nav(VIEW);
 }
 
@@ -709,6 +710,7 @@ async function publish(){
 /* ---------- router ---------- */
 const VIEWS={timeline:renderTimeline,planner:renderPlanner,cycles:renderCycles,orders:renderOrders,conflicts:renderConflicts,history:renderHistory,settings:renderSettings};
 function nav(v){
+  if(!isAdmin()&&(v==='planner'||v==='settings')) v='timeline';
   VIEW=v;
   $$('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
   render();
@@ -873,14 +875,23 @@ function scrollToToday(id){
   sc.scrollLeft=Math.max(0,diffDays(sc.dataset.rs,todayISO())*TL_ZOOM-sc.clientWidth*0.35);
 }
 
+/* ---------- zoom controls (shared) ---------- */
+function zoomControls(){
+  const presets=[['Month',3],['Default',6],['Day',12]];
+  return `<div class="zoom">${presets.map(([n,z])=>`<button class="${Math.abs(TL_ZOOM-z)<0.01?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}
+    <button title="Zoom out" onclick="TL_ZOOM=Math.max(2,+(TL_ZOOM/1.25).toFixed(2));render()">−</button>
+    <button title="Zoom in" onclick="TL_ZOOM=Math.min(24,+(TL_ZOOM*1.25).toFixed(2));render()">+</button>
+  </div>`;
+}
+
 /* ---------- ACTUAL timeline view ---------- */
 function renderTimeline(conflicts){
   const shown=TL_HISTORY?S.cycles:S.cycles.filter(c=>!c.archived);
   $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>Production Timeline</h2><div class="sub">Actual schedule — all rooms, veg rack, clones & dry room · today is ${fmtR(todayISO())}</div></div>
+  <div class="pagehead"><div><h2>F1/F2 Production Calendar</h2><div class="sub">Actual schedule — all rooms, veg rack, clones & dry room · today is ${fmtR(todayISO())}</div></div>
     <div class="hd-actions">${headerButtons()}</div></div>
   <div class="tl-controls">
-    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
+    ${zoomControls()}
     <button class="btn small" onclick="TL_HISTORY=!TL_HISTORY;render()">${TL_HISTORY?'Hide':'Show'} history</button>
     <button class="btn small" onclick="scrollToToday()">↦ Today</button>
     <span class="small faint">click any bar to open its cycle</span>
@@ -1065,13 +1076,28 @@ function orderCounts(o){
   const n=o.slots.length;
   return {per,cut,needed:per*n,cutTotal:cut*n};
 }
+function updateOrderSlot(oid,i,field,val){ const o=S.cloneOrders.find(x=>x.id===oid); if(!o)return; o.slots[i][field]=val; markDirty(); }
+function updateOrderField(oid,field,val){ const o=S.cloneOrders.find(x=>x.id===oid); if(!o)return; o[field]=val||null; markDirty(); }
+function dupOrder(oid){
+  const src=S.cloneOrders.find(x=>x.id===oid); if(!src)return;
+  const id='co-dup-'+oid+'-'+(S.cloneOrders.length+1);
+  S.cloneOrders.push({id,room:src.room,cutDate:null,transplantDate:null,status:'planned',
+    slots:src.slots.map(s=>({loc:s.loc,strain:s.strain,note:s.note})),notes:'Duplicated from '+(src.cutDate?'cut '+fmtR(src.cutDate):'order')});
+  markDirty(); render(); openOrder(id); toast('Duplicated — set the new cut & transplant dates');
+}
 function renderOrders(){
   const orders=[...S.cloneOrders].sort((a,b)=>((b.cutDate||b.transplantDate||'')>(a.cutDate||a.transplantDate||'')?1:-1));
+  const ad=isAdmin();
   const cards=orders.map((o,i)=>{
     const cts=orderCounts(o), rm=roomOf(o.room);
     const open=i===0?'open':'';
     const stBadge={planned:'<span class="badge info">planned</span>',cut:'<span class="badge warn">cut — rooting</span>',done:'<span class="badge ok">done</span>'}[o.status]||'';
     const succ=o.actualCount?Math.round(o.actualCount/cts.needed*100):null;
+    const slotRows=o.slots.map((s,idx)=>ad?
+      `<tr><td class="muted" style="width:110px">${esc(s.loc)}</td>
+        <td><input list="strain-dl" value="${esc(s.strain)}" style="width:100%" onclick="event.stopPropagation()" onchange="updateOrderSlot('${o.id}',${idx},'strain',this.value)"></td>
+        <td style="width:190px"><input value="${esc(s.note||'')}" placeholder="note" style="width:100%" onclick="event.stopPropagation()" onchange="updateOrderSlot('${o.id}',${idx},'note',this.value)"></td></tr>`:
+      `<tr><td class="muted">${esc(s.loc)}</td><td>${esc(s.strain)||'<span class=faint>—</span>'}</td><td class="small faint">${esc(s.note||'')}</td></tr>`).join('');
     return `<div class="co-card ${open}" id="co-${o.id}">
     <div class="co-head" onclick="this.parentElement.classList.toggle('open')">
       <span class="arrow">▶</span>
@@ -1080,19 +1106,22 @@ function renderOrders(){
       <span class="meta">→ transplant ${fmtR(o.transplantDate)||'TBD'}</span>
       ${stBadge} ${o.imported?'<span class="badge dim">imported</span>':''}
       <span class="meta" style="margin-left:auto">${cts.needed} needed · ${cts.cutTotal} cut</span>
+      ${ad?`<button class="btn small" onclick="event.stopPropagation();openOrder('${o.id}')">Edit</button>
+      <button class="btn small" onclick="event.stopPropagation();dupOrder('${o.id}')">Duplicate</button>`:''}
     </div>
     <div class="co-body">
-      <div class="co-stats">
+      <div class="co-stats" style="align-items:flex-end">
+        ${ad?`<span>Cut date<br><input type="date" value="${o.cutDate||''}" onchange="updateOrderField('${o.id}','cutDate',this.value);render()"></span>
+        <span>Transplant<br><input type="date" value="${o.transplantDate||''}" onchange="updateOrderField('${o.id}','transplantDate',this.value);render()"></span>`:''}
         <span><b>${cts.per}</b> clones / slot</span><span><b>${cts.cut}</b> cut / slot (+${S.config.defaults.overagePct}%)</span>
         <span><b>${cts.needed}</b> total needed</span><span><b>${cts.cutTotal}</b> total cut</span>
         ${succ!=null?`<span><b>${succ}%</b> of needed survived (${o.actualCount})</span>`:''}
       </div>
-      <table class="tbl"><thead><tr><th>Location</th><th>Strain</th><th>Note</th></tr></thead><tbody>
-        ${o.slots.map(s=>`<tr><td class="muted">${esc(s.loc)}</td><td>${esc(s.strain)||'<span class=faint>—</span>'}</td><td class="small faint">${esc(s.note||'')}</td></tr>`).join('')}
+      <table class="tbl"><thead><tr><th>Location</th><th>Strain ${ad?'<span class="faint" style="text-transform:none">(type to edit — saves instantly)</span>':''}</th><th>Note</th></tr></thead><tbody>
+        ${slotRows}
       </tbody></table>
       ${o.notes?`<div class="small faint" style="margin-top:8px">${esc(o.notes)}</div>`:''}
-      ${isAdmin()?`<div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn small" onclick="openOrder('${o.id}')">Edit</button>
+      ${ad?`<div style="display:flex;gap:8px;margin-top:12px;align-items:center">
         <select class="small" onchange="setOrderStatus('${o.id}',this.value)" style="padding:4px 8px"><option ${o.status==='planned'?'selected':''}>planned</option><option ${o.status==='cut'?'selected':''}>cut</option><option ${o.status==='done'?'selected':''}>done</option></select>
         <input type="number" placeholder="actual survived #" value="${o.actualCount||''}" onchange="setOrderActual('${o.id}',this.value)" style="width:150px;padding:4px 8px">
         <button class="btn small danger" onclick="deleteOrder('${o.id}')" style="margin-left:auto">Delete</button></div>`:''}
@@ -1100,15 +1129,15 @@ function renderOrders(){
   }).join('');
   $('#main').innerHTML=`
   <div class="pagehead"><div><h2>Clone Orders</h2><div class="sub">Every order, newest first. Counts auto-calc from room settings + ${S.config.defaults.overagePct}% overage.</div></div>
-  <div class="hd-actions">${isAdmin()?'<button class="btn" onclick="openOrder(null)">+ New order</button>':''}${headerButtons()}</div></div>
+  <div class="hd-actions">${ad?'<button class="btn primary" onclick="openOrder(null)">+ New clone order</button>':''}${headerButtons()}</div></div>
+  <datalist id="strain-dl">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>
   <div style="display:flex;flex-direction:column;gap:10px">${cards||'<div class=empty>No orders yet.</div>'}</div>
   <div class="card" style="margin-top:20px;padding:0"><h3 style="padding:14px 16px 0">Strain list</h3>
     <table class="tbl"><thead><tr><th>Strain</th><th>Category</th><th>Abbr</th>${isAdmin()?'<th></th>':''}</tr></thead><tbody>
     ${S.strains.map((s,i)=>`<tr><td>${esc(s.name)}</td><td class="muted">${esc(s.category||'')}</td><td class="faint">${esc(s.abbr||'')}</td>${isAdmin()?`<td><button class="btn small" onclick="delStrain(${i})">✕</button></td>`:''}</tr>`).join('')}
     </tbody></table>
     ${isAdmin()?`<div style="display:flex;gap:8px;padding:12px 16px"><input id="ns-name" placeholder="New strain name"><input id="ns-cat" placeholder="Category" style="width:130px"><input id="ns-abbr" placeholder="Abbr" style="width:80px"><button class="btn small" onclick="addStrain()">Add</button></div>`:''}
-  </div>
-  <datalist id="strain-dl">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>`;
+  </div>`;
 }
 function addStrain(){ const n=$('#ns-name').value.trim(); if(!n) return; S.strains.push({name:n,category:$('#ns-cat').value.trim(),abbr:$('#ns-abbr').value.trim()}); S.strains.sort((a,b)=>a.name<b.name?-1:1); markDirty(); render(); }
 function delStrain(i){ S.strains.splice(i,1); markDirty(); render(); }
@@ -1128,7 +1157,7 @@ function openOrder(id){
        slots:(prev?prev.slots.map(s=>({loc:s.loc,strain:''})):Array.from({length:room.slots},(_,i)=>({loc:'Row '+(Math.floor(i/2)+1)+' '+(i%2?'Top':'Bottom'),strain:''}))),notes:''};
   }
   const rows=o.slots.map((s,i)=>`<tr><td class="muted small">${esc(s.loc)}</td>
-    <td><input list="strain-dl" id="os-${i}" value="${esc(s.strain)}" style="width:100%"></td>
+    <td><input list="strain-dl-m" id="os-${i}" value="${esc(s.strain)}" style="width:100%"></td>
     <td><input id="on-${i}" value="${esc(s.note||'')}" placeholder="note" style="width:100%"></td></tr>`).join('');
   $('#modal-box').innerHTML=`
   <h3>${id?'Edit clone order':'New clone order'}</h3>
@@ -1142,7 +1171,7 @@ function openOrder(id){
     <div class="full"><label>Notes</label><textarea id="o-notes" rows="2">${esc(o.notes||'')}</textarea></div>
   </div>
   <div class="acts"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveOrder()">Save</button></div>
-  <datalist id="strain-dl">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>`;
+  <datalist id="strain-dl-m">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>`;
   window._orderSlots=o.slots;
   $('#modal').classList.add('on');
   orderRoomHint();
@@ -1298,7 +1327,7 @@ function renderPlanner(){
   ${mockCys.length?plannerStats(mockCys,cfg,conflicts):''}
 
   <div class="tl-controls">
-    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
+    ${zoomControls()}
     <button class="btn small" onclick="scrollToToday('pl-scroll')">↦ Today</button>
   </div>
   ${mockCys.length?buildTimeline(mockCys,cfg,conflicts,{allRooms:true,extendPast:true,scrollId:'pl-scroll'}):'<div class="card"><div class="empty">No mock plan yet — set an anchor date and hit <b>Generate mock plan</b>.</div></div>'}
