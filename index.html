@@ -202,6 +202,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     <div class="brand"><div class="t1">CCGL</div><div class="t2">Cultivation</div></div>
     <div class="nav">
       <a href="javascript:nav('timeline')" data-v="timeline" class="active">📅 <span class="txt">Timeline</span></a>
+      <a href="javascript:nav('planner')" data-v="planner">🧪 <span class="txt">3-Room Planner</span></a>
       <a href="javascript:nav('cycles')" data-v="cycles">🔁 <span class="txt">Cycles</span></a>
       <a href="javascript:nav('orders')" data-v="orders">✂️ <span class="txt">Clone Orders</span></a>
       <a href="javascript:nav('conflicts')" data-v="conflicts">⚠️ <span class="txt">Conflicts</span> <span class="cnt zero" id="nav-conf-cnt">0</span></a>
@@ -706,7 +707,7 @@ async function publish(){
 }
 
 /* ---------- router ---------- */
-const VIEWS={timeline:renderTimeline,cycles:renderCycles,orders:renderOrders,conflicts:renderConflicts,history:renderHistory,settings:renderSettings};
+const VIEWS={timeline:renderTimeline,planner:renderPlanner,cycles:renderCycles,orders:renderOrders,conflicts:renderConflicts,history:renderHistory,settings:renderSettings};
 function nav(v){
   VIEW=v;
   $$('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
@@ -722,7 +723,7 @@ function render(){
 
 /* ---------- shared helpers ---------- */
 function roomOf(id){ return S.config.rooms.find(r=>r.id===id)||{id,name:id,color:'#888'}; }
-function cycleById(id){ return S.cycles.find(c=>c.id===id); }
+function cycleById(id){ return S.cycles.find(c=>c.id===id) || ((S.mock&&S.mock.cycles)||[]).find(c=>c.id===id); }
 function nextCode(roomId){
   let mx=0;
   S.cycles.filter(c=>c.room===roomId).forEach(c=>{ const m=c.id.match(/H(\d+)/); if(m) mx=Math.max(mx,+m[1]); });
@@ -733,25 +734,23 @@ function sevBadge(s){ return `<span class="badge ${s==='crit'?'crit':s==='warn'?
 
 document.addEventListener('DOMContentLoaded',boot);
 
-/* ===================== TIMELINE ===================== */
-function tlRange(){
+/* ===================== TIMELINE (shared renderer) ===================== */
+function tlRange(cys,cfg,extendPast){
   const t=todayISO();
   let s=addISO(t,-45), e=addISO(t,200);
-  const cys=S.cycles.filter(c=>TL_HISTORY||!c.archived);
   cys.forEach(c=>{
-    const ev=deriveCycle(c,S.config);
-    Object.values(ev).forEach(seg=>{ if(seg&&seg.start){ if(TL_HISTORY&&seg.start<s)s=seg.start; if(seg.end>e)e=addISO(seg.end,14); }});
+    const ev=deriveCycle(c,cfg);
+    Object.values(ev).forEach(seg=>{ if(seg&&seg.start){ if(seg.start<s&&extendPast)s=seg.start; if(seg.end>e)e=addISO(seg.end,14); }});
   });
   return {s:addISO(s,-3),e};
 }
 
 const KINDCOLOR={clone:'#00cec9',rack:'#8DC63F',roomVeg:'#8DC63Fcc',flower:null,ff:'#e84393',harvest:'#e74c3c',flip:'#5a7088',hang:null,bins:'#f0d5a5',defole:'#f39c12'};
 
-function laneBars(cycles,kinds,laneKind){
-  // returns [{cy,seg,kind,color,label}]
+function laneBars(cycles,kinds,cfg){
   const out=[];
   cycles.forEach(c=>{
-    const ev=deriveCycle(c,S.config), rm=roomOf(c.room);
+    const ev=deriveCycle(c,cfg), rm=(cfg.rooms.find(r=>r.id===c.room)||{color:'#888'});
     kinds.forEach(k=>{
       const seg=ev[k]; if(!seg) return;
       let color=KINDCOLOR[k], label='';
@@ -770,22 +769,20 @@ function laneBars(cycles,kinds,laneKind){
   return out;
 }
 
-function renderTimeline(conflicts){
-  const {s:RS,e:RE}=tlRange();
+/* builds the tl-wrap block for any cycle set; opts: {allRooms, extendPast, scrollId} */
+function buildTimeline(shown,cfg,conflicts,opts){
+  opts=opts||{};
+  const {s:RS,e:RE}=tlRange(shown,cfg,opts.extendPast);
   const days=diffDays(RS,RE)+1, Z=TL_ZOOM, W=days*Z, t=todayISO();
-  const live=S.cycles.filter(c=>!c.archived);
-  const shown=TL_HISTORY?S.cycles:live;
 
-  // lanes
   const lanes=[];
-  S.config.rooms.filter(r=>r.active||shown.some(c=>c.room===r.id)).forEach(r=>{
+  cfg.rooms.filter(r=>opts.allRooms||r.active||shown.some(c=>c.room===r.id)).forEach(r=>{
     lanes.push({id:r.id,nm:r.name,ds:r.lights+' lights',cycles:shown.filter(c=>c.room===r.id),kinds:['roomVeg','flower','ff','harvest','flip'],h:52});
   });
   lanes.push({id:'RACK',nm:'Veg Rack',ds:'rack rotation',cycles:shown,kinds:['rack'],h:44});
   lanes.push({id:'CLONE',nm:'Clone / Mom',ds:'cuts & rooting',cycles:shown,kinds:['clone'],h:44});
   lanes.push({id:'DRY',nm:'Dry Room',ds:'hang → bins',cycles:shown,kinds:['hang','bins'],h:60});
 
-  // month + day headers
   let months='',dayCells='',gridLines='';
   let cur=RS;
   while(cur<=RE){
@@ -802,35 +799,31 @@ function renderTimeline(conflicts){
     cur=addISO(cur,1);
   }
 
-  // conflict flags grouped by date
   const rank={crit:0,warn:1,info:2};
   const byDate={};
   conflicts.forEach(c=>{ if(c.date>=RS&&c.date<=RE){ if(!byDate[c.date]||rank[c.sev]<rank[byDate[c.date].sev]) byDate[c.date]={sev:c.sev,items:[]}; }});
   conflicts.forEach(c=>{ if(byDate[c.date]) byDate[c.date].items.push(c); });
   let flags='';
   Object.entries(byDate).forEach(([d,g])=>{
-    flags+=`<div class="tl-flag ${g.sev}" style="left:${diffDays(RS,d)*Z+Z/2-5}px;top:5px" data-tip="${esc(g.items.map(i=>sevIcon(i.sev)+' '+i.title).join('\n'))}" onclick="nav('conflicts')"></div>`;
+    flags+=`<div class="tl-flag ${g.sev}" style="left:${diffDays(RS,d)*Z+Z/2-5}px;top:5px" data-tip="${esc(g.items.map(i=>sevIcon(i.sev)+' '+i.title).join('\n'))}" ${opts.flagClick||''}></div>`;
   });
 
-  // lanes html
   let lanesHtml='';
   lanes.forEach(L=>{
-    const bars=laneBars(L.cycles,L.kinds,L.id).filter(b=>b.seg.end>=RS&&b.seg.start<=RE);
-    // sub-row assignment for overlap (esp. DRY + RACK + CLONE)
+    const bars=laneBars(L.cycles,L.kinds,cfg).filter(b=>b.seg.end>=RS&&b.seg.start<=RE);
     const rows=[];
     bars.sort((a,b)=>a.seg.start<b.seg.start?-1:1).forEach(b=>{
       let ri=rows.findIndex(rEnd=>b.seg.start>rEnd);
-      if(L.id!=='DRY'&&L.kinds.length>1) ri=0; // room lanes: everything on one row (phases are sequential per room)
+      if(L.kinds.includes('flower')) ri=0;
       if(ri<0){ rows.push(b.seg.end); ri=rows.length-1; } else rows[ri]=b.seg.end>rows[ri]?b.seg.end:rows[ri];
       b.row=ri;
     });
     const nRows=Math.max(1,rows.length);
     const rowH=L.id==='DRY'||nRows>1?Math.min(24,(L.h-8)/nRows):L.h-16;
     let html='';
-    // harvest-window shading + defole marks for room lanes
     if(L.kinds.includes('flower')) L.cycles.forEach(c=>{
-      const ev=deriveCycle(c,S.config); if(!ev.window) return;
-      if(ev.window.end<RS||ev.window.start>RE) {} else
+      const ev=deriveCycle(c,cfg); if(!ev.window) return;
+      if(!(ev.window.end<RS||ev.window.start>RE))
       html+=`<div style="position:absolute;top:4px;bottom:4px;left:${diffDays(RS,ev.window.start)*Z}px;width:${(diffDays(ev.window.start,ev.window.end)+1)*Z}px;background:repeating-linear-gradient(45deg,#4E9E8E18 0 6px,transparent 6px 12px);border-radius:4px;pointer-events:none"></div>`;
       ['defole1','defole2'].forEach(k=>{
         const dseg=ev[k]; if(!dseg||dseg.end<RS||dseg.start>RE) return;
@@ -840,7 +833,7 @@ function renderTimeline(conflicts){
     bars.forEach(b=>{
       const x=diffDays(RS,b.seg.start<RS?RS:b.seg.start)*Z;
       const w=Math.max(Z,(diffDays((b.seg.start<RS?RS:b.seg.start),(b.seg.end>RE?RE:b.seg.end))+1)*Z-1);
-      const top=b.kind==='defole'?4:(L.kinds.includes('flower')?18:6+b.row*(rowH+3));
+      const top=L.kinds.includes('flower')?18:6+b.row*(rowH+3);
       const h=L.kinds.includes('flower')?(L.h-24):rowH;
       const bg=b.kind==='bins'?'#c9a86a':b.color;
       const op=b.kind==='roomVeg'?'55':(b.kind==='flip'?'66':(b.kind==='rack'?'99':(b.kind==='clone'?'77':(b.kind==='hang'?'aa':''))));
@@ -852,17 +845,8 @@ function renderTimeline(conflicts){
       <div class="tl-lane-label"><span class="nm">${esc(L.nm)}</span><span class="ds">${esc(L.ds)}</span></div></div>`;
   });
 
-  $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>Production Timeline</h2><div class="sub">All rooms, veg rack, clones & dry room · today is ${fmtR(t)}</div></div>
-    <div class="hd-actions">${headerButtons()}</div></div>
-  <div class="tl-controls">
-    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
-    <button class="btn small" onclick="TL_HISTORY=!TL_HISTORY;render()">${TL_HISTORY?'Hide':'Show'} history</button>
-    <button class="btn small" onclick="scrollToToday()">↦ Today</button>
-    <span class="small faint">click any bar to open its cycle</span>
-  </div>
-  <div class="tl-wrap">
-    <div class="tl-scroll" id="tl-scroll"><div class="tl-inner" style="width:${W}px">
+  return `<div class="tl-wrap">
+    <div class="tl-scroll" id="${opts.scrollId||'tl-scroll'}" data-rs="${RS}"><div class="tl-inner" style="width:${W}px">
       <div class="tl-months" style="position:relative">${months}<div style="position:absolute;left:${diffDays(RS,t)*Z}px" class="tl-today-tag">TODAY</div></div>
       <div class="tl-days">${dayCells}${flags}</div>
       ${lanesHtml}
@@ -881,15 +865,30 @@ function renderTimeline(conflicts){
       <span class="k"><span class="sw" style="background:#c9a86a"></span>Dry: bins</span>
       <span class="k"><span style="color:var(--red)">●</span>/<span style="color:var(--orange)">●</span>/<span style="color:var(--blue)">●</span> conflicts</span>
     </div>
+  </div>`;
+}
+
+function scrollToToday(id){
+  const sc=document.getElementById(id||'tl-scroll'); if(!sc) return;
+  sc.scrollLeft=Math.max(0,diffDays(sc.dataset.rs,todayISO())*TL_ZOOM-sc.clientWidth*0.35);
+}
+
+/* ---------- ACTUAL timeline view ---------- */
+function renderTimeline(conflicts){
+  const shown=TL_HISTORY?S.cycles:S.cycles.filter(c=>!c.archived);
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Production Timeline</h2><div class="sub">Actual schedule — all rooms, veg rack, clones & dry room · today is ${fmtR(todayISO())}</div></div>
+    <div class="hd-actions">${headerButtons()}</div></div>
+  <div class="tl-controls">
+    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
+    <button class="btn small" onclick="TL_HISTORY=!TL_HISTORY;render()">${TL_HISTORY?'Hide':'Show'} history</button>
+    <button class="btn small" onclick="scrollToToday()">↦ Today</button>
+    <span class="small faint">click any bar to open its cycle</span>
   </div>
+  ${buildTimeline(shown,S.config,conflicts,{extendPast:TL_HISTORY,flagClick:'onclick="nav(\'conflicts\')"'})}
   ${nextUpPanel()}`;
   attachTips();
   scrollToToday();
-}
-function scrollToToday(){
-  const sc=$('#tl-scroll'); if(!sc) return;
-  const {s:RS}=tlRange();
-  sc.scrollLeft=Math.max(0,diffDays(RS,todayISO())*TL_ZOOM-sc.clientWidth*0.35);
 }
 
 function nextUpPanel(){
@@ -941,7 +940,7 @@ function renderConflicts(conflicts){
     return `<div class="card" style="margin-bottom:14px;padding:0"><h3 style="padding:14px 16px 0">${sv==='crit'?'⛔ Critical':sv==='warn'?'⚠️ Warnings':'ℹ️ Heads-up'} <span class="muted">(${items.length})</span></h3>${items.map(row).join('')}</div>`;
   }).join('');
   $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>Conflicts</h2><div class="sub">Nothing is auto-moved — these are flags to plan around. Adjust dates in the cycle editor to clear them.</div></div>
+  <div class="pagehead"><div><h2>Conflicts</h2><div class="sub">Actual schedule only — the 3-Room Planner shows its own flags. Nothing is auto-moved.</div></div>
   <div class="hd-actions">${headerButtons()}</div></div>
   ${fut.length?groups:`<div class="card"><div class="empty">✅ No upcoming conflicts detected across ${S.cycles.filter(c=>!c.archived).length} active cycles.</div></div>`}
   ${past.length?`<details style="margin-top:16px"><summary class="muted small" style="cursor:pointer">${past.length} past conflict(s)</summary><div class="card" style="margin-top:8px;padding:0">${past.map(row).join('')}</div></details>`:''}`;
@@ -1045,7 +1044,7 @@ function saveCycle(){
   markDirty(); closeModal(); render(); toast('Saved — remember to Publish');
 }
 function archiveCycle(id){ const c=cycleById(id); c.archived=!c.archived; markDirty(); render(); }
-function deleteCycle(id){ if(!confirm('Delete '+id+' entirely? (Archive keeps it in History instead.)')) return; S.cycles=S.cycles.filter(c=>c.id!==id); markDirty(); closeModal(); render(); }
+function deleteCycle(id){ if(!confirm('Delete '+id+' entirely? (Archive keeps it in History instead.)')) return; S.cycles=S.cycles.filter(c=>c.id!==id); if(S.mock&&S.mock.cycles) S.mock.cycles=S.mock.cycles.filter(c=>c.id!==id); markDirty(); closeModal(); render(); }
 function closeModal(){ $('#modal').classList.remove('on'); }
 
 /* ===================== HISTORY ===================== */
@@ -1205,6 +1204,107 @@ function renderSettings(){
 function setHolidays(txt){
   S.config.holidays=txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.*)$/);return m?{date:m[1],name:m[2]}:null;}).filter(Boolean);
   markDirty();
+}
+
+/* ===================== 3-ROOM PLANNER (mock sandbox) ===================== */
+function mockStore(){
+  if(!S.mock) S.mock={settings:{anchor:'2026-09-11',staggerDays:23,perRoom:3},cycles:[]};
+  if(!S.mock.settings) S.mock.settings={anchor:'2026-09-11',staggerDays:23,perRoom:3};
+  if(!S.mock.cycles) S.mock.cycles=[];
+  return S.mock;
+}
+function mockConfig(){
+  // same defaults/holidays, but all three rooms forced active for the sandbox
+  return {...S.config, rooms:S.config.rooms.map(r=>({...r,active:true}))};
+}
+function roomInterval(){
+  const D=S.config.defaults;
+  // flower day 1 → next flower day 1 in the same room: harvest end (d harvestPlanDay+dryHarvestDays-1) + flip + transplant next day
+  return (D.harvestPlanDay-1)+(D.dryHarvestDays-1)+1+D.flipDays+1;
+}
+function genMockPlan(){
+  const M=mockStore(), D=S.config.defaults;
+  const anchor=$('#pl-anchor').value, stag=+$('#pl-stagger').value||23, per=Math.min(6,Math.max(1,+$('#pl-per').value||3));
+  if(!anchor){ toast('Set the F1 flower day 1 anchor date first'); return; }
+  M.settings={anchor,staggerDays:stag,perRoom:per};
+  const interval=roomInterval();
+  M.cycles=[];
+  ['F1','F2','F3'].forEach((r,i)=>{
+    for(let k=0;k<per;k++){
+      const f1=addISO(anchor,i*stag+k*interval);
+      const troom=f1;
+      const track=addISO(troom,-(D.rackToRoomDays||10));
+      const cut=addISO(track,-(D.cutToRackDays||21));
+      M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
+        dates:{cloneCut:cut,transplantRack:track,transplantRoom:troom,flowerDay1:f1},overrides:{},notes:'planner mock'});
+    }
+  });
+  markDirty(); render();
+  toast('Mock plan generated — '+M.cycles.length+' cycles');
+}
+function clearMockPlan(){ if(!confirm('Clear the mock plan?'))return; mockStore().cycles=[]; markDirty(); render(); }
+
+function plannerStats(mockCys,cfg,conflicts){
+  const D=cfg.defaults, M=mockStore();
+  const interval=roomInterval();
+  const flipsYr=(365/interval);
+  const stag=M.settings.staggerDays;
+  const dryNeed=D.dryHangDays+D.dryBinDays;
+  const overflow=dryNeed-stag;
+  const harvYr=Math.round(flipsYr*3);
+  const nCrit=conflicts.filter(c=>c.sev==='crit').length, nWarn=conflicts.filter(c=>c.sev==='warn').length;
+  return `<div class="grid3" style="margin-bottom:14px">
+    <div class="card"><h3>Cadence</h3><div class="small muted">Room cycle (flower 1 → flower 1)</div><div style="font-size:22px;color:var(--text-bright);font-weight:800">${interval} days</div>
+      <div class="small faint" style="margin-top:4px">${flipsYr.toFixed(2)} flips/room/yr · ~${harvYr} harvests/yr facility-wide · a harvest every <b>${stag}</b> days at this stagger</div></div>
+    <div class="card"><h3>Dry room pressure</h3><div class="small muted">Hang ${D.dryHangDays}d + bins ${D.dryBinDays}d = needs ${dryNeed}d per harvest</div>
+      <div style="font-size:22px;font-weight:800;color:${overflow>0?'var(--orange)':'var(--ok)'}">${overflow>0?'bins out ~'+overflow+'d early':'fits with '+(-overflow)+'d spare'}</div>
+      <div class="small faint" style="margin-top:4px">${overflow>0?'Next harvest hangs before the last one\'s bins finish — bins must move to cure/production after ~'+(stag-D.dryHangDays)+' days instead of '+D.dryBinDays+'.':'Dry room clears before the next harvest arrives.'}</div></div>
+    <div class="card"><h3>Mock conflicts</h3><div style="font-size:22px;font-weight:800;color:${nCrit?'var(--red)':nWarn?'var(--orange)':'var(--ok)'}">${nCrit} critical · ${nWarn} warnings</div>
+      <div class="small faint" style="margin-top:4px">Full list below the timeline. Adjust stagger or per-cycle dates and regenerate to compare scenarios.</div></div>
+  </div>`;
+}
+
+function renderPlanner(){
+  const M=mockStore(), cfg=mockConfig();
+  const mockCys=M.cycles;
+  const conflicts=mockCys.length?detectConflicts({config:cfg,cycles:mockCys}):[];
+  const ro=!isAdmin()?'disabled':'';
+  const row=c=>`<div class="cf-row"><div class="ic">${sevIcon(c.sev)}</div>
+    <div><div class="tt">${esc(c.title)} ${sevBadge(c.sev)}</div><div class="dd">${esc(c.detail)}</div></div>
+    <div class="dt">${fmtR(c.date)}</div></div>`;
+  const confHtml=['crit','warn','info'].map(sv=>{
+    const items=conflicts.filter(c=>c.sev===sv);
+    if(!items.length) return '';
+    return `<div class="card" style="margin-top:14px;padding:0"><h3 style="padding:14px 16px 0">${sv==='crit'?'⛔ Critical':sv==='warn'?'⚠️ Warnings':'ℹ️ Heads-up'} <span class="muted">(${items.length})</span></h3>${items.map(row).join('')}</div>`;
+  }).join('');
+
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>3-Room Planner <span class="badge info" style="vertical-align:middle">sandbox</span></h2>
+    <div class="sub">Mock schedule only — nothing here touches the actual timeline. Generate a stagger, read the flags, tweak, repeat.</div></div>
+    <div class="hd-actions">${headerButtons()}</div></div>
+
+  <div class="card" style="margin-bottom:14px"><h3>Plan generator</h3>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">F1 flower day 1 (anchor)</label><input type="date" id="pl-anchor" value="${esc(M.settings.anchor)}" ${ro}></div>
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Stagger between rooms (days)</label><input type="number" id="pl-stagger" value="${M.settings.staggerDays}" style="width:90px" ${ro}></div>
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Cycles per room</label><input type="number" id="pl-per" value="${M.settings.perRoom}" style="width:80px" min="1" max="6" ${ro}></div>
+      ${isAdmin()?`<button class="btn primary" onclick="genMockPlan()">Generate mock plan</button>
+      <button class="btn" onclick="clearMockPlan()" ${mockCys.length?'':'disabled'}>Clear</button>`:''}
+      <span class="small faint">even 3-way stagger = ~${Math.round(roomInterval()/3)} days · F3 sized at ${(S.config.rooms.find(r=>r.id==='F3')||{}).lights||77} lights</span>
+    </div>
+    <div class="small faint" style="margin-top:8px">Generator uses your Settings defaults (veg ${S.config.defaults.cutToRackDays}d clone + ${S.config.defaults.rackToRoomDays}d rack, flower→harvest d${S.config.defaults.harvestPlanDay}, flip ${S.config.defaults.flipDays}d). Click any bar to hand-tweak that mock cycle, then re-read the flags. The plan saves with Publish so Matt & David see the same scenario.</div>
+  </div>
+
+  ${mockCys.length?plannerStats(mockCys,cfg,conflicts):''}
+
+  <div class="tl-controls">
+    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
+    <button class="btn small" onclick="scrollToToday('pl-scroll')">↦ Today</button>
+  </div>
+  ${mockCys.length?buildTimeline(mockCys,cfg,conflicts,{allRooms:true,extendPast:true,scrollId:'pl-scroll'}):'<div class="card"><div class="empty">No mock plan yet — set an anchor date and hit <b>Generate mock plan</b>.</div></div>'}
+  ${confHtml}`;
+  attachTips();
+  if(mockCys.length) scrollToToday('pl-scroll');
 }
 
 </script>
