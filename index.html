@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCGL Cultivation Schedule</title>
+<style>
+:root{
+  --bg:#0a1628; --bg-deep:#050d16; --panel:#0f1f35; --panel-2:#13263f; --panel-3:#0d1b2c;
+  --line:#1a3050; --line-soft:#1a305066;
+  --text:#d0d8e0; --text-bright:#d6e4f1; --text-dim:#8096ab; --text-faint:#5a7088;
+  --teal:#4E9E8E; --green:#8DC63F; --blue:#4A90B5; --purple:#9b59b6;
+  --red:#e74c3c; --orange:#f39c12; --ok:#2ecc71; --pink:#e84393; --cyan:#00cec9; --sand:#f0d5a5;
+  --rF1:#4E9E8E; --rF2:#4A90B5; --rF3:#9b59b6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;background:var(--panel-3);border:1px solid var(--line);color:var(--text-bright);border-radius:6px;padding:7px 10px;font-size:13px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal)}
+input[type=date]{color-scheme:dark}
+a{color:var(--teal)}
+
+/* ---------- login ---------- */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#0f2137 0%,var(--bg-deep) 70%)}
+.login-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:36px 40px;width:340px;box-shadow:0 20px 60px #00000066}
+.login-card h1{font-size:19px;color:var(--text-bright);margin-bottom:2px}
+.login-card .sub{color:var(--text-dim);font-size:12px;margin-bottom:22px}
+.login-card label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 5px}
+.login-card select,.login-card input{width:100%}
+.login-card .go{width:100%;margin-top:22px;background:var(--teal);border:none;color:#04110e;font-weight:700;padding:10px;border-radius:8px;font-size:14px}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;min-height:15px}
+.leaf{font-size:26px;margin-bottom:10px}
+
+/* ---------- layout ---------- */
+.app{display:none;min-height:100vh}
+.app.on{display:flex}
+.sidebar{width:210px;flex-shrink:0;background:linear-gradient(180deg,#081520 0%,#050d16 100%);border-right:1px solid var(--line);padding:18px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{padding:0 18px 16px;border-bottom:1px solid var(--line-soft);margin-bottom:12px}
+.brand .t1{font-weight:800;color:var(--text-bright);font-size:15px;letter-spacing:.02em}
+.brand .t2{color:var(--teal);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.nav{flex:1}
+.nav a{display:flex;align-items:center;gap:9px;padding:9px 18px;color:var(--text-dim);text-decoration:none;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{color:var(--text-bright);background:#4E9E8E11}
+.nav a.active{color:var(--text-bright);border-left-color:var(--teal);background:linear-gradient(90deg,#4E9E8E1a 0%,transparent 100%)}
+.nav .cnt{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:20px;padding:1px 7px}
+.nav .cnt.zero{background:var(--line);color:var(--text-dim)}
+.side-foot{padding:12px 18px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--text-faint)}
+.side-foot .who{color:var(--text-dim);font-weight:600}
+.side-foot button{background:none;border:none;color:var(--text-faint);font-size:11px;padding:0;margin-top:4px;text-decoration:underline}
+.main{flex:1;min-width:0;padding:22px 26px 60px}
+
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.pagehead h2{font-size:18px;color:var(--text-bright)}
+.pagehead .sub{color:var(--text-dim);font-size:12px;margin-top:3px}
+.hd-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:7px 13px;font-size:13px}
+.btn:hover{border-color:var(--teal);color:var(--text-bright)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#04110e;font-weight:700}
+.btn.danger{border-color:#e74c3c55;color:var(--red)}
+.btn.small{padding:4px 9px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:20px;padding:2px 9px}
+.badge.crit{background:#e74c3c22;color:var(--red);border:1px solid #e74c3c33}
+.badge.warn{background:#f39c1222;color:var(--orange);border:1px solid #f39c1233}
+.badge.info{background:#4A90B522;color:var(--blue);border:1px solid #4A90B533}
+.badge.ok{background:#2ecc7122;color:var(--ok)}
+.badge.dim{background:var(--line-soft);color:var(--text-dim)}
+.badge.est{background:#f0d5a522;color:var(--sand)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h3{font-size:13px;color:var(--text-bright);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.muted{color:var(--text-dim)} .faint{color:var(--text-faint)} .small{font-size:12px}
+.mono{font-variant-numeric:tabular-nums}
+
+/* ---------- timeline ---------- */
+.tl-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.tl-controls .zoom{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.tl-controls .zoom button{background:var(--panel-3);border:none;color:var(--text-dim);padding:6px 12px;font-size:12px}
+.tl-controls .zoom button.on{background:var(--teal);color:#04110e;font-weight:700}
+.tl-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tl-scroll{overflow-x:auto;position:relative}
+.tl-inner{position:relative}
+.tl-months{position:relative;height:22px;border-bottom:1px solid var(--line)}
+.tl-months .m{position:absolute;top:0;height:100%;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:var(--text-dim);border-left:1px solid var(--line-soft);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden}
+.tl-days{position:relative;height:20px;border-bottom:1px solid var(--line)}
+.tl-days .d{position:absolute;top:0;height:100%;font-size:9px;color:var(--text-faint);display:flex;align-items:center;justify-content:center}
+.tl-days .d.we{color:#f39c1288}
+.tl-lane{position:relative;border-bottom:1px solid var(--line-soft)}
+.tl-lane:last-child{border-bottom:none}
+.tl-lane-label{position:sticky;left:0;z-index:5;width:130px;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 10px;background:linear-gradient(90deg,#0f1f35 82%,transparent);pointer-events:none}
+.tl-lane-label .nm{font-size:12px;font-weight:700;color:var(--text-bright)}
+.tl-lane-label .ds{font-size:10px;color:var(--text-faint)}
+.tl-grid-line{position:absolute;top:0;bottom:0;width:1px;background:var(--line-soft)}
+.tl-today{position:absolute;top:0;bottom:0;width:2px;background:var(--green);z-index:4;box-shadow:0 0 8px #8DC63F88}
+.tl-today-tag{position:absolute;top:1px;background:var(--green);color:#04110e;font-size:9px;font-weight:800;padding:1px 5px;border-radius:0 4px 4px 0;z-index:4}
+.tl-bar{position:absolute;border-radius:4px;font-size:10px;font-weight:600;color:#fff;display:flex;align-items:center;padding:0 6px;overflow:hidden;white-space:nowrap;cursor:pointer;border:1px solid #00000033}
+.tl-bar .lbl{text-shadow:0 1px 2px #00000088}
+.tl-mark{position:absolute;border-radius:3px;cursor:pointer;z-index:3;border:1px solid #00000044;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;overflow:hidden;text-shadow:0 1px 2px #000000aa}
+.tl-flag{position:absolute;z-index:6;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg);cursor:pointer}
+.tl-flag.crit{background:var(--red)} .tl-flag.warn{background:var(--orange)} .tl-flag.info{background:var(--blue)}
+.tl-legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--text-dim)}
+.tl-legend .k{display:flex;align-items:center;gap:5px}
+.tl-legend .sw{width:14px;height:9px;border-radius:2px;display:inline-block}
+.tip{position:fixed;z-index:99;background:#050d16f2;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;max-width:300px;pointer-events:none;box-shadow:0 8px 30px #000000aa;display:none}
+.tip .t{font-weight:700;color:var(--text-bright);margin-bottom:3px}
+
+/* ---------- conflicts ---------- */
+.cf-row{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--line-soft)}
+.cf-row:last-child{border-bottom:none}
+.cf-row .ic{font-size:16px;line-height:1.2}
+.cf-row .tt{font-weight:600;color:var(--text-bright);font-size:13px}
+.cf-row .dd{color:var(--text-dim);font-size:12px;margin-top:2px}
+.cf-row .dt{margin-left:auto;text-align:right;color:var(--text-faint);font-size:11px;white-space:nowrap}
+
+/* ---------- cycles ---------- */
+.cy-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.cy-card .top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.cy-card .code{font-weight:800;font-size:15px;color:var(--text-bright)}
+.cy-card .roomtag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;color:#04110e}
+.cy-phase{font-size:12px;color:var(--text-dim);margin-bottom:10px}
+.cy-phase b{color:var(--text-bright)}
+.cy-dates{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:12px}
+.cy-dates .k{color:var(--text-faint)} .cy-dates .v{color:var(--text);text-align:right}
+.cy-foot{display:flex;gap:8px;margin-top:12px}
+.prog{height:5px;background:var(--panel-3);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.prog i{display:block;height:100%;border-radius:3px}
+
+/* ---------- forms / modal ---------- */
+.modal-bg{position:fixed;inset:0;background:#050d16cc;z-index:50;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.on{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;width:100%;max-width:560px;box-shadow:0 20px 80px #000000cc}
+.modal h3{font-size:15px;color:var(--text-bright);margin-bottom:16px}
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.frm .full{grid-column:1/-1}
+.frm label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim);margin-bottom:4px}
+.frm input,.frm select,.frm textarea{width:100%}
+.frm .hint{font-size:11px;color:var(--text-faint);margin-top:3px}
+.modal .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* ---------- tables ---------- */
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:7px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--line-soft);color:var(--text)}
+.tbl tr:hover td{background:#4E9E8E08}
+.tbl td input,.tbl td select{padding:4px 7px;font-size:12px}
+
+/* ---------- clone orders ---------- */
+.co-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.co-head{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer}
+.co-head:hover{background:#4E9E8E08}
+.co-head .arrow{color:var(--text-faint);font-size:11px;width:12px}
+.co-head .ttl{font-weight:700;color:var(--text-bright)}
+.co-head .meta{color:var(--text-dim);font-size:12px}
+.co-body{border-top:1px solid var(--line);padding:14px 16px;display:none}
+.co-card.open .co-body{display:block}
+.co-stats{display:flex;gap:22px;margin-bottom:12px;font-size:12px;color:var(--text-dim);flex-wrap:wrap}
+.co-stats b{color:var(--text-bright);font-size:15px;display:block}
+
+/* ---------- settings ---------- */
+.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.set-item label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px}
+.set-item input{width:100%}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel-2);border:1px solid var(--teal);color:var(--text-bright);border-radius:8px;padding:11px 16px;font-size:13px;z-index:100;display:none;box-shadow:0 10px 40px #000000aa}
+.pill-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.empty{padding:30px;text-align:center;color:var(--text-faint);font-size:13px}
+.notice{background:#4A90B511;border:1px solid #4A90B533;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text-dim);margin-bottom:14px}
+.notice b{color:var(--blue)}
+
+@media(max-width:900px){
+  .sidebar{width:64px}
+  .brand .t1,.brand .t2,.nav a span.txt,.side-foot{display:none}
+  .nav a{justify-content:center;padding:11px 0}
+  .main{padding:16px 12px 60px}
+  .grid2{grid-template-columns:1fr}
+  .frm{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+
+<div id="login" class="login-wrap" style="display:none">
+  <div class="login-card">
+    <div class="leaf">🌱</div>
+    <h1>CCGL Cultivation</h1>
+    <div class="sub">Production schedule · Cape Cod Grow Lab</div>
+    <label>Name</label><select id="login-name"></select>
+    <label>Password</label><input id="login-pw" type="password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="go" onclick="doLogin()">Enter</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<div id="app" class="app">
+  <div class="sidebar">
+    <div class="brand"><div class="t1">CCGL</div><div class="t2">Cultivation</div></div>
+    <div class="nav">
+      <a href="javascript:nav('timeline')" data-v="timeline" class="active">📅 <span class="txt">Timeline</span></a>
+      <a href="javascript:nav('cycles')" data-v="cycles">🔁 <span class="txt">Cycles</span></a>
+      <a href="javascript:nav('orders')" data-v="orders">✂️ <span class="txt">Clone Orders</span></a>
+      <a href="javascript:nav('conflicts')" data-v="conflicts">⚠️ <span class="txt">Conflicts</span> <span class="cnt zero" id="nav-conf-cnt">0</span></a>
+      <a href="javascript:nav('history')" data-v="history">🗂 <span class="txt">History</span></a>
+      <a href="javascript:nav('settings')" data-v="settings">⚙️ <span class="txt">Settings</span></a>
+    </div>
+    <div class="side-foot"><span class="who" id="who"></span><br><button onclick="logout()">switch user</button></div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+
+<div id="modal" class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal-box"></div></div>
+<div id="tip" class="tip"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const DEFAULT_STATE={
+  "meta": {
+    "app": "CCGL Cultivation Schedule",
+    "version": 1,
+    "updatedAt": "2026-07-15",
+    "updatedBy": "seed-import"
+  },
+  "config": {
+    "users": [
+      { "name": "Dan", "role": "admin", "pw": "dabs" },
+      { "name": "Matt", "role": "admin", "pw": "veg" },
+      { "name": "David", "role": "admin", "pw": "flower" },
+      { "name": "Guest", "role": "guest", "pw": "growlab" }
+    ],
+    "publish": { "owner": "dangillan1", "repo": "ccgl-cultivation", "branch": "main", "path": "state.json" },
+    "rooms": [
+      { "id": "F1", "name": "Flower 1", "lights": 118, "slots": 12, "clonesPerSlot": 90, "active": true, "color": "#4E9E8E" },
+      { "id": "F2", "name": "Flower 2", "lights": 118, "slots": 12, "clonesPerSlot": 90, "active": true, "color": "#4A90B5" },
+      { "id": "F3", "name": "Flower 3", "lights": 77, "slots": 12, "clonesPerSlot": 59, "active": false, "color": "#9b59b6", "note": "Online target end of 2026. 77 lights vs 118 in F1/F2 — clones/slot scaled at 77/118 of 90 ≈ 59." }
+    ],
+    "defaults": {
+      "flowerDays": 65,
+      "harvestWindowStart": 56,
+      "defole1Day": 21,
+      "defole2Day": 42,
+      "defoleLen": 4,
+      "ffHarvestDays": 2,
+      "dryHarvestDays": 2,
+      "harvestPlanDay": 63,
+      "flipDays": 4,
+      "dryHangDays": 14,
+      "dryBinDays": 14,
+      "overagePct": 70,
+      "cutToRackDays": 21,
+      "rackToRoomDays": 10,
+      "roomToFlowerDays": 0,
+      "harvestProximityDays": 2
+    },
+    "holidays": [
+      { "date": "2026-09-07", "name": "Labor Day" },
+      { "date": "2026-11-26", "name": "Thanksgiving" },
+      { "date": "2026-11-27", "name": "Day after Thanksgiving" },
+      { "date": "2026-12-24", "name": "Christmas Eve" },
+      { "date": "2026-12-25", "name": "Christmas" },
+      { "date": "2027-01-01", "name": "New Year's Day" },
+      { "date": "2027-05-31", "name": "Memorial Day" },
+      { "date": "2027-07-05", "name": "July 4th (observed)" },
+      { "date": "2027-09-06", "name": "Labor Day" },
+      { "date": "2027-11-25", "name": "Thanksgiving" }
+    ]
+  },
+  "strains": [
+    { "name": "Alien Marker", "category": "Dessert", "abbr": "ALM" },
+    { "name": "Applescotti", "category": "Dessert", "abbr": "APL" },
+    { "name": "Baby Yoda", "category": "Gas", "abbr": "BBY" },
+    { "name": "Beach Cooler", "category": "", "abbr": "BCH" },
+    { "name": "Black Maple", "category": "Hash", "abbr": "BLA" },
+    { "name": "Blue Andeze", "category": "Dessert", "abbr": "BAN" },
+    { "name": "Blueberry Sugar", "category": "Fruit", "abbr": "BBS" },
+    { "name": "Bob Hope (Lemon Durbscotti)", "category": "Fruit", "abbr": "BOB" },
+    { "name": "Candy Fumez x Grape Gas", "category": "Candy Gas", "abbr": "CFG" },
+    { "name": "Cape White Shark", "category": "Green", "abbr": "CWS" },
+    { "name": "Chamoy", "category": "Dessert", "abbr": "CHM" },
+    { "name": "Double Runtz", "category": "Candy Gas", "abbr": "DRU" },
+    { "name": "Garlic Slushee", "category": "Stank", "abbr": "GSL" },
+    { "name": "Gelato 41 x Jealousy", "category": "Candy Gas", "abbr": "J41" },
+    { "name": "Golden Lemons", "category": "Fruit", "abbr": "GLD" },
+    { "name": "Heir Heads", "category": "Candy Gas", "abbr": "HEH" },
+    { "name": "Hellcat", "category": "", "abbr": "HEL" },
+    { "name": "LA Runtz", "category": "Dessert", "abbr": "LAR" },
+    { "name": "Lemon Cherry Sherbert", "category": "Dessert", "abbr": "LCS" },
+    { "name": "Lemon Pastries", "category": "Fruit", "abbr": "LPS" },
+    { "name": "Lion's Breath", "category": "Candy Gas", "abbr": "LIB" },
+    { "name": "Mac10", "category": "", "abbr": "M10" },
+    { "name": "Midnight", "category": "Dessert", "abbr": "MID" },
+    { "name": "Papa Burger", "category": "", "abbr": "PBG" },
+    { "name": "Papaya Bx", "category": "Fruit", "abbr": "PAP" },
+    { "name": "Pie Hoe", "category": "", "abbr": "PIE" },
+    { "name": "Purple Push Pop", "category": "Fruit", "abbr": "PPP" },
+    { "name": "Rainbow Guava", "category": "Fruit", "abbr": "RGV" },
+    { "name": "Razzle", "category": "", "abbr": "RZL" },
+    { "name": "Red Pop", "category": "Fruit", "abbr": "RDP" },
+    { "name": "Sour Diesel", "category": "Gas", "abbr": "SDL" },
+    { "name": "Super Runtz", "category": "Candy Gas", "abbr": "SRU" },
+    { "name": "Swampwater Fumez", "category": "Stank", "abbr": "SWF" },
+    { "name": "The Bodhi", "category": "", "abbr": "BOD" },
+    { "name": "Trap Fuel", "category": "Gas", "abbr": "TRF" },
+    { "name": "Velvet Pound Cake", "category": "Dessert", "abbr": "VPC" },
+    { "name": "Zoap", "category": "Candy Gas", "abbr": "ZOA" },
+    { "name": "Zowah", "category": "Fruit", "abbr": "ZOW" }
+  ],
+  "cycles": [
+    {
+      "id": "F1H06", "room": "F1", "archived": true, "estimated": true,
+      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": null, "flowerDay1": "2025-06-26" },
+      "overrides": { "ffHarvestStart": "2025-08-25", "harvestStart": "2025-08-27", "harvestEnd": "2025-08-29" },
+      "notes": "Imported from sheet. Defoles ran 7/16-24, 8/6-12."
+    },
+    {
+      "id": "F1H07", "room": "F1", "archived": true, "estimated": true,
+      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2025-09-11", "flowerDay1": "2025-10-03" },
+      "overrides": { "harvestStart": "2025-12-04", "harvestEnd": "2025-12-05" },
+      "notes": "Imported from sheet. Transplant 9/11-12 after flip; defoles 10/23-26 (d21) and 11/13-16 (d42)."
+    },
+    {
+      "id": "F1H08", "room": "F1", "archived": true, "estimated": true,
+      "dates": { "cloneCut": "2025-11-25", "transplantRack": null, "transplantRoom": "2025-12-08", "flowerDay1": "2025-12-16" },
+      "overrides": { "ffHarvestStart": null, "harvestStart": "2026-02-25", "harvestEnd": "2026-02-27" },
+      "notes": "Imported from sheet. Clones 11/25-12/7 in-house; defoles 1/15-20 and 2/5-11; harvest 2/25-27."
+    },
+    {
+      "id": "F2H07", "room": "F2", "archived": true, "estimated": true,
+      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2025-07-31", "flowerDay1": "2025-08-13" },
+      "overrides": { "harvestStart": "2025-10-14", "harvestEnd": "2025-10-15", "flipStart": "2025-10-16", "flipEnd": "2025-10-31" },
+      "notes": "Imported from sheet. Flip extended for VAS install + full room clean (10/16-31)."
+    },
+    {
+      "id": "F2H08", "room": "F2", "archived": true, "estimated": true,
+      "dates": { "cloneCut": "2026-01-08", "transplantRack": "2026-01-28", "transplantRoom": "2026-02-04", "flowerDay1": "2026-02-09" },
+      "overrides": { "harvestStart": "2026-04-14", "harvestEnd": "2026-04-16", "flipStart": "2026-04-17", "flipEnd": "2026-04-19" },
+      "notes": "Imported from sheet. Cut 1/8-9, clone 18 days, veg on rack 1/28-2/3, defoles 3/2-6 (d21) and 3/23-27 (d42)."
+    },
+    {
+      "id": "F2H09", "room": "F2", "archived": true, "estimated": true,
+      "dates": { "cloneCut": null, "transplantRack": null, "transplantRoom": "2026-04-20", "flowerDay1": "2026-04-29" },
+      "overrides": { "harvestStart": "2026-07-06", "harvestEnd": "2026-07-08" },
+      "notes": "Imported from sheet — harvest dates estimated (day ~68-70); room flipped by 7/15 for F2H10 rack transplant."
+    },
+    {
+      "id": "F1H09", "room": "F1", "archived": false, "estimated": false,
+      "dates": { "cloneCut": "2026-05-06", "transplantRack": "2026-05-28", "transplantRoom": "2026-06-16", "flowerDay1": "2026-06-16" },
+      "overrides": { "ffHarvestStart": "2026-08-17", "harvestStart": "2026-08-19", "harvestEnd": "2026-08-21" },
+      "notes": "Current F1 cycle. FF harvest 8/17-18, dry harvest 8/19-21 per sheet plan. Veg 5/29-6/13 on rack."
+    },
+    {
+      "id": "F2H10", "room": "F2", "archived": false, "estimated": true,
+      "dates": { "cloneCut": "2026-06-24", "transplantRack": "2026-07-15", "transplantRoom": "2026-07-25", "flowerDay1": "2026-07-25" },
+      "overrides": {},
+      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated at 7/25 from sheet — confirm."
+    },
+    {
+      "id": "F1H10", "room": "F1", "archived": false, "estimated": true,
+      "dates": { "cloneCut": "2026-08-13", "transplantRack": "2026-09-03", "transplantRoom": "2026-09-10", "flowerDay1": "2026-09-11" },
+      "overrides": {},
+      "notes": "Next F1 cycle. Sheet: transplant to F1 9/10 (hold The Bodhi & Alien Marker on rack until flower day 7 = 9/21); defoles w/ PH planned 9/27-10/1. Sheet's code row says F2H10 from 9/11 — typo, this is F1H10. Rack date estimated."
+    }
+  ],
+  "cloneOrders": [
+    {
+      "id": "co-2025-09-08-F1", "room": "F1", "cutDate": null, "transplantDate": "2025-09-08", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Alien Marker" }, { "loc": "Row 1 Top", "strain": "Alien Marker" },
+        { "loc": "Row 2 Bottom", "strain": "Alien Marker" }, { "loc": "Row 2 Top", "strain": "Hellcat" },
+        { "loc": "Row 3 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 3 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 4 Bottom", "strain": "Candy Fumez x Grape Gas" }, { "loc": "Row 4 Top", "strain": "Bob Hope (Lemon Durbscotti)" },
+        { "loc": "Row 5 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 5 Top", "strain": "" },
+        { "loc": "Row 6 Bottom", "strain": "" }, { "loc": "Row 6 Top", "strain": "Applescotti" }
+      ],
+      "notes": "Imported — partial strain map recovered from sheet."
+    },
+    {
+      "id": "co-2025-11-10-F2", "room": "F2", "cutDate": "2025-10-20", "transplantDate": "2025-11-10", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Lemon Cherry Sherbert" }, { "loc": "Row 2 Top", "strain": "Lemon Cherry Sherbert" },
+        { "loc": "Row 3 Bottom", "strain": "Double Runtz" }, { "loc": "Row 3 Top", "strain": "Double Runtz" },
+        { "loc": "Row 4 Bottom", "strain": "Gelato 41 x Jealousy" }, { "loc": "Row 4 Top", "strain": "Candy Fumez x Grape Gas" },
+        { "loc": "Row 5 Bottom", "strain": "Beach Cooler", "note": "swapped for CWS" }, { "loc": "Row 5 Top", "strain": "Beach Cooler", "note": "swapped for CWS" },
+        { "loc": "Row 6 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 6 Top", "strain": "Purple Push Pop" }
+      ]
+    },
+    {
+      "id": "co-2025-11-27-F1", "room": "F1", "cutDate": null, "transplantDate": "2025-11-27", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 2 Top", "strain": "Cape White Shark" },
+        { "loc": "Row 3 Bottom", "strain": "Lemon Cherry Sherbert" }, { "loc": "Row 3 Top", "strain": "Double Runtz" },
+        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
+        { "loc": "Row 5 Bottom", "strain": "Zowah" }, { "loc": "Row 5 Top", "strain": "Baby Yoda" },
+        { "loc": "Row 6 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 6 Top", "strain": "Alien Marker" }
+      ],
+      "notes": "V3 w/ Cam's options; delayed transplant for fan install."
+    },
+    {
+      "id": "co-2026-02-02-F2", "room": "F2", "cutDate": "2026-01-08", "transplantDate": "2026-02-02", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Heir Heads" }, { "loc": "Row 2 Top", "strain": "Super Runtz" },
+        { "loc": "Row 3 Bottom", "strain": "Purple Push Pop", "note": "Applescotti swapped for PPP" }, { "loc": "Row 3 Top", "strain": "Baby Yoda" },
+        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Lemon Cherry Sherbert" },
+        { "loc": "Row 5 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 5 Top", "strain": "Purple Push Pop" },
+        { "loc": "Row 6 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 6 Top", "strain": "Blue Andeze" }
+      ],
+      "notes": "Final (V3) version of the 2/2/26 F2 order."
+    },
+    {
+      "id": "co-2026-03-23-F1", "room": "F1", "cutDate": "2026-02-13", "transplantDate": "2026-03-23", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 1 Top", "strain": "Blue Andeze" },
+        { "loc": "Row 2 Bottom", "strain": "Alien Marker" }, { "loc": "Row 2 Top", "strain": "Alien Marker" },
+        { "loc": "Row 3 Bottom", "strain": "Rainbow Guava / Swampwater Fumez / Black Maple (1/3 row each)", "note": "FF" }, { "loc": "Row 3 Top", "strain": "The Bodhi" },
+        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
+        { "loc": "Row 5 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 5 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 6 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 6 Top", "strain": "Alien Marker + Rainbow Guava (hash)" }
+      ],
+      "notes": "FINAL CHANGES column from sheet."
+    },
+    {
+      "id": "co-2026-05-06-F1", "room": "F1", "cutDate": "2026-05-06", "transplantDate": "2026-06-16", "status": "done", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 3 Bottom", "strain": "Super Runtz" }, { "loc": "Row 3 Top", "strain": "Super Runtz" },
+        { "loc": "Row 4 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 4 Top", "strain": "Purple Push Pop" },
+        { "loc": "Row 5 Bottom", "strain": "Blue Andeze" }, { "loc": "Row 5 Top", "strain": "Golden Lemons / Garlic Slushee (1/2 each)" },
+        { "loc": "Row 6 Bottom", "strain": "Black Maple" }, { "loc": "Row 6 Top", "strain": "Alien Marker" }
+      ],
+      "notes": "Feeds F1H09."
+    },
+    {
+      "id": "co-2026-06-24-F2", "room": "F2", "cutDate": "2026-06-24", "transplantDate": "2026-07-25", "status": "cut", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Garlic Slushee" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 3 Bottom", "strain": "Cape White Shark" }, { "loc": "Row 3 Top", "strain": "Rainbow Guava", "note": "1/2 FF" },
+        { "loc": "Row 4 Bottom", "strain": "The Bodhi" }, { "loc": "Row 4 Top", "strain": "Alien Marker" },
+        { "loc": "Row 5 Bottom", "strain": "Black Maple" }, { "loc": "Row 5 Top", "strain": "Black Maple / Swampwater Fumez (1/2 each)" },
+        { "loc": "Row 6 Bottom", "strain": "Swampwater Fumez" }, { "loc": "Row 6 Top", "strain": "Papaya Bx", "note": "Full FF" }
+      ],
+      "notes": "Feeds F2H10."
+    },
+    {
+      "id": "co-2026-08-13-F1", "room": "F1", "cutDate": "2026-08-13", "transplantDate": "2026-09-10", "status": "planned", "imported": true,
+      "slots": [
+        { "loc": "Row 1 Bottom", "strain": "Lion's Breath" }, { "loc": "Row 1 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 2 Bottom", "strain": "Trap Fuel / Lion's Breath (1/2 each)" }, { "loc": "Row 2 Top", "strain": "Lion's Breath" },
+        { "loc": "Row 3 Bottom", "strain": "Purple Push Pop" }, { "loc": "Row 3 Top", "strain": "Purple Push Pop" },
+        { "loc": "Row 4 Bottom", "strain": "Golden Lemons" }, { "loc": "Row 4 Top", "strain": "Lemon Cherry Sherbert" },
+        { "loc": "Row 5 Bottom", "strain": "Black Maple" }, { "loc": "Row 5 Top", "strain": "Black Maple" },
+        { "loc": "Row 6 Bottom", "strain": "Lemon Pastries / Razzle (1/2 each)" }, { "loc": "Row 6 Top", "strain": "Papa Burger / Mac10 (1/2 each)" }
+      ],
+      "notes": "Feeds F1H10."
+    }
+  ]
+};
+/* ===================== date helpers ===================== */
+const MS=86400000;
+function pd(iso){ if(!iso) return null; const [y,m,d]=iso.split('-').map(Number); return Date.UTC(y,m-1,d); }
+function iso(t){ const d=new Date(t); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function addISO(isoStr,days){ return iso(pd(isoStr)+days*MS); }
+function diffDays(a,b){ return Math.round((pd(b)-pd(a))/MS); } // b - a
+function dow(isoStr){ return new Date(pd(isoStr)).getUTCDay(); } // 0 Sun
+function isWeekend(isoStr){ const d=dow(isoStr); return d===0||d===6; }
+function fmt(isoStr,withYear){ if(!isoStr) return '—'; const d=new Date(pd(isoStr)); const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return M[d.getUTCMonth()]+' '+d.getUTCDate()+(withYear?' \''+String(d.getUTCFullYear()).slice(2):''); }
+function fmtR(isoStr){ return fmt(isoStr,true); }
+function todayISO(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
+function overlap(a,b){ return a&&b&&a.start<=b.end&&b.start<=a.end; }
+function within(d,seg){ return seg&&d>=seg.start&&d<=seg.end; }
+function gapDays(a,b){ // days between segments (0 = touching/overlap)
+  if(overlap(a,b)) return 0;
+  return a.end<b.start ? diffDays(a.end,b.start)-1 : diffDays(b.end,a.start)-1;
+}
+
+/* ===================== cycle derivation =====================
+   Inputs (cycle.dates): cloneCut, transplantRack, transplantRoom, flowerDay1
+   Everything else derived from config defaults, overridable per-cycle. */
+function deriveCycle(cy,cfg){
+  const D=cfg.defaults, o=cy.overrides||{}, dt=cy.dates||{};
+  const ev={};
+  const f1=dt.flowerDay1;
+  if(dt.cloneCut){
+    const end = dt.transplantRack? addISO(dt.transplantRack,-1) : addISO(dt.cloneCut,(D.cutToRackDays||21)-1);
+    ev.clone={start:dt.cloneCut,end,kind:'clone'};
+  }
+  if(dt.transplantRack){
+    const end = dt.transplantRoom? addISO(dt.transplantRoom,-1) : addISO(dt.transplantRack,(D.rackToRoomDays||10)-1);
+    ev.rack={start:dt.transplantRack,end,kind:'rack'};
+  }
+  if(dt.transplantRoom && f1 && diffDays(dt.transplantRoom,f1)>0){
+    ev.roomVeg={start:dt.transplantRoom,end:addISO(f1,-1),kind:'roomVeg'};
+  }
+  if(f1){
+    const fEnd=addISO(f1,D.flowerDays-1);
+    const hStart = o.harvestStart || addISO(f1,D.harvestPlanDay-1);
+    const hEnd   = o.harvestEnd   || addISO(hStart,D.dryHarvestDays-1);
+    const ffDays = D.ffHarvestDays||2;
+    const ffStart= o.ffHarvestStart || addISO(hStart,-ffDays);
+    ev.flower ={start:f1,end:(hEnd>fEnd?hEnd:fEnd),kind:'flower'};
+    ev.window ={start:addISO(f1,D.harvestWindowStart-1),end:addISO(f1,D.flowerDays-1),kind:'window'};
+    const d1=o.defole1Start||addISO(f1,D.defole1Day-1);
+    const d2=o.defole2Start||addISO(f1,D.defole2Day-1);
+    ev.defole1={start:d1,end:o.defole1End||addISO(d1,D.defoleLen-1),kind:'defole',n:1};
+    ev.defole2={start:d2,end:o.defole2End||addISO(d2,D.defoleLen-1),kind:'defole',n:2};
+    ev.ff     ={start:ffStart,end:addISO(hStart,-1),kind:'ff'};
+    ev.harvest={start:hStart,end:hEnd,kind:'harvest'};
+    const flS=o.flipStart||addISO(hEnd,1);
+    ev.flip   ={start:flS,end:o.flipEnd||addISO(flS,D.flipDays-1),kind:'flip'};
+    const hgS=o.dryHangStart||hStart;
+    const hgE=o.dryHangEnd||addISO(hgS,D.dryHangDays-1);
+    ev.hang   ={start:hgS,end:hgE,kind:'hang'};
+    ev.bins   ={start:addISO(hgE,1),end:o.dryBinsEnd||addISO(hgE,D.dryBinDays),kind:'bins'};
+    ev.flowerDayOf=(d)=>diffDays(f1,d)+1;
+  }
+  return ev;
+}
+
+function cycleStatus(cy,ev){
+  const t=todayISO();
+  if(ev.bins&&t>ev.bins.end) return {label:'Complete',color:'var(--text-faint)',phase:'done'};
+  if(ev.bins&&within(t,ev.bins)) return {label:'Dry — in bins · day '+(diffDays(ev.bins.start,t)+1),color:'var(--sand)',phase:'bins'};
+  if(ev.hang&&within(t,ev.hang)) return {label:'Dry — hanging · day '+(diffDays(ev.hang.start,t)+1),color:'var(--sand)',phase:'hang'};
+  if(ev.harvest&&within(t,ev.harvest)) return {label:'HARVEST',color:'var(--red)',phase:'harvest'};
+  if(ev.ff&&within(t,ev.ff)) return {label:'FF Harvest',color:'var(--pink)',phase:'ff'};
+  if(ev.flower&&within(t,ev.flower)) return {label:'Flower day '+(ev.flowerDayOf(t)),color:'var(--teal)',phase:'flower'};
+  if(ev.roomVeg&&within(t,ev.roomVeg)) return {label:'Veg in room · day '+(diffDays(ev.roomVeg.start,t)+1),color:'var(--green)',phase:'roomVeg'};
+  if(ev.rack&&within(t,ev.rack)) return {label:'Veg on rack · day '+(diffDays(ev.rack.start,t)+1),color:'var(--green)',phase:'rack'};
+  if(ev.clone&&within(t,ev.clone)) return {label:'Clone · day '+(diffDays(ev.clone.start,t)+1),color:'var(--cyan)',phase:'clone'};
+  if(ev.clone&&t<ev.clone.start) return {label:'Planned · cut '+fmt(ev.clone.start),color:'var(--text-dim)',phase:'planned'};
+  return {label:'Planned',color:'var(--text-dim)',phase:'planned'};
+}
+
+/* ===================== conflict detection ===================== */
+function detectConflicts(state){
+  const cfg=state.config, D=cfg.defaults;
+  const list=[];
+  const cys=state.cycles.filter(c=>!c.archived).map(c=>({cy:c,ev:deriveCycle(c,cfg)}));
+  const prox=D.harvestProximityDays||2;
+  const roomName=id=>{const r=cfg.rooms.find(r=>r.id===id);return r?r.name:id;};
+  const push=(sev,date,title,detail,ids)=>list.push({sev,date,title,detail,cycles:ids});
+
+  for(let i=0;i<cys.length;i++)for(let j=i+1;j<cys.length;j++){
+    const A=cys[i],B=cys[j];
+    // harvest blocks = FF start -> dry harvest end
+    const hA=A.ev.harvest?{start:(A.ev.ff?A.ev.ff.start:A.ev.harvest.start),end:A.ev.harvest.end}:null;
+    const hB=B.ev.harvest?{start:(B.ev.ff?B.ev.ff.start:B.ev.harvest.start),end:B.ev.harvest.end}:null;
+    if(hA&&hB&&A.cy.room!==B.cy.room){
+      if(overlap(hA,hB)) push('crit',hA.start>hB.start?hA.start:hB.start,'Harvests overlap: '+A.cy.id+' + '+B.cy.id,'Both rooms are in their FF/dry harvest block at the same time.',[A.cy.id,B.cy.id]);
+      else if(gapDays(hA,hB)<=prox) push('warn',hA.start>hB.start?hA.start:hB.start,'Harvests back-to-back: '+A.cy.id+' + '+B.cy.id,'Only '+gapDays(hA,hB)+' day(s) between the two harvest blocks (threshold '+prox+').',[A.cy.id,B.cy.id]);
+    }
+    // defole vs other room's harvest block
+    [[A,B],[B,A]].forEach(([X,Y])=>{
+      const hY=Y.ev.harvest?{start:(Y.ev.ff?Y.ev.ff.start:Y.ev.harvest.start),end:Y.ev.harvest.end}:null;
+      if(!hY) return;
+      ['defole1','defole2'].forEach(k=>{
+        if(X.ev[k]&&overlap(X.ev[k],hY)) push('warn',X.ev[k].start,'Defole during harvest: '+X.cy.id+' × '+Y.cy.id,X.cy.id+' defole '+X.ev[k].n+' ('+fmt(X.ev[k].start)+'–'+fmt(X.ev[k].end)+') lands inside '+Y.cy.id+"'s harvest block.",[X.cy.id,Y.cy.id]);
+      });
+      // clone cut in harvest block
+      if(X.ev.clone){
+        const cut={start:X.ev.clone.start,end:X.ev.clone.start};
+        if(overlap(cut,hY)) push('warn',cut.start,'Clone cut during harvest: '+X.cy.id+' × '+Y.cy.id,'Clone cut for '+X.cy.id+' ('+fmt(cut.start)+') falls inside '+Y.cy.id+"'s harvest block.",[X.cy.id,Y.cy.id]);
+      }
+      // transplant during other room's harvest or flip
+      ['transplantRack','transplantRoom'].forEach(tk=>{
+        const d=X.cy.dates&&X.cy.dates[tk]; if(!d) return;
+        if(within(d,hY)) push('info',d,'Transplant during harvest: '+X.cy.id+' × '+Y.cy.id,(tk==='transplantRack'?'Transplant to rack':'Transplant to room')+' for '+X.cy.id+' ('+fmt(d)+') is inside '+Y.cy.id+"'s harvest block.",[X.cy.id,Y.cy.id]);
+        if(Y.ev.flip&&within(d,Y.ev.flip)) push('info',d,'Transplant during flip: '+X.cy.id+' × '+Y.cy.id,(tk==='transplantRack'?'Rack':'Room')+' transplant for '+X.cy.id+' while '+roomName(Y.cy.room)+' is mid room-flip.',[X.cy.id,Y.cy.id]);
+      });
+    });
+    // dry room
+    if(A.ev.hang&&B.ev.hang){
+      if(overlap(A.ev.hang,B.ev.hang)) push('crit',A.ev.hang.start>B.ev.hang.start?A.ev.hang.start:B.ev.hang.start,'Dry room double-hung: '+A.cy.id+' + '+B.cy.id,'Two harvests hanging at once — one dry room can’t take both.',[A.cy.id,B.cy.id]);
+      else{
+        const [first,second]=A.ev.hang.start<=B.ev.hang.start?[A,B]:[B,A];
+        if(first.ev.bins&&overlap(first.ev.bins,second.ev.hang)) push('warn',second.ev.hang.start,'Bins must move early: '+first.cy.id+' → '+second.cy.id,first.cy.id+"'s bins are scheduled in the dry room until "+fmt(first.ev.bins.end)+', but '+second.cy.id+' starts hanging '+fmt(second.ev.hang.start)+'. Bins need to move to cure/production '+(diffDays(second.ev.hang.start,first.ev.bins.end)+1)+' day(s) sooner.',[first.cy.id,second.cy.id]);
+      }
+    }
+    // veg rack occupancy
+    if(A.ev.rack&&B.ev.rack&&overlap(A.ev.rack,B.ev.rack))
+      push('warn',A.ev.rack.start>B.ev.rack.start?A.ev.rack.start:B.ev.rack.start,'Veg rack double-booked: '+A.cy.id+' + '+B.cy.id,'Both cycles are on the veg rack '+fmt(A.ev.rack.start>B.ev.rack.start?A.ev.rack.start:B.ev.rack.start)+'–'+fmt(A.ev.rack.end<B.ev.rack.end?A.ev.rack.end:B.ev.rack.end)+'. Check rack capacity.',[A.cy.id,B.cy.id]);
+    // same-room sanity: overlapping occupancy
+    if(A.cy.room===B.cy.room&&A.ev.flower&&B.ev.flower){
+      const occA={start:(A.cy.dates.transplantRoom||A.ev.flower.start),end:A.ev.flip?A.ev.flip.end:A.ev.flower.end};
+      const occB={start:(B.cy.dates.transplantRoom||B.ev.flower.start),end:B.ev.flip?B.ev.flip.end:B.ev.flower.end};
+      if(overlap(occA,occB)) push('crit',occB.start>occA.start?occB.start:occA.start,'Room double-booked: '+A.cy.id+' + '+B.cy.id,roomName(A.cy.room)+' has two cycles occupying it at once (incl. flip days).',[A.cy.id,B.cy.id]);
+    }
+  }
+  // weekend / holiday landings + room-dark gaps
+  const hol={}; (cfg.holidays||[]).forEach(h=>hol[h.date]=h.name);
+  cys.forEach(({cy,ev})=>{
+    const checks=[
+      ['Clone cut',cy.dates.cloneCut],['Transplant to rack',cy.dates.transplantRack],
+      ['Transplant to room',cy.dates.transplantRoom],
+      ['FF harvest start',ev.ff&&ev.ff.start],['Harvest start',ev.harvest&&ev.harvest.start],
+      ['Defole 1 start',ev.defole1&&ev.defole1.start],['Defole 2 start',ev.defole2&&ev.defole2.start]
+    ];
+    checks.forEach(([nm,d])=>{
+      if(!d||d<todayISO()) return;
+      if(hol[d]) push('warn',d,nm+' on '+hol[d],cy.id+': '+nm+' lands on '+hol[d]+' ('+fmt(d)+').',[cy.id]);
+      else if(isWeekend(d)) push('info',d,nm+' on a weekend',cy.id+': '+nm+' lands on a '+(dow(d)===0?'Sunday':'Saturday')+' ('+fmt(d)+').',[cy.id]);
+    });
+    if(ev.harvest){
+      ['harvest','ff'].forEach(k=>{ if(!ev[k])return; for(let d=ev[k].start;d<=ev[k].end;d=addISO(d,1)){ if(hol[d]&&d>=todayISO()) push('warn',d,(k==='ff'?'FF harvest':'Harvest')+' day on '+hol[d],cy.id+' '+(k==='ff'?'FF harvest':'harvest')+' runs over '+hol[d]+' ('+fmt(d)+').',[cy.id]); } });
+    }
+  });
+  // room dark gaps
+  cfg.rooms.filter(r=>r.active).forEach(r=>{
+    const rc=cys.filter(c=>c.cy.room===r.id&&c.ev.flip&&c.cy.dates.transplantRoom).sort((a,b)=>a.cy.dates.transplantRoom<b.cy.dates.transplantRoom?-1:1);
+    for(let i=0;i<rc.length-1;i++){
+      const gap=diffDays(rc[i].ev.flip.end,rc[i+1].cy.dates.transplantRoom)-1;
+      if(gap>3) push('info',rc[i].ev.flip.end,r.name+' dark for '+gap+' days','Between '+rc[i].cy.id+' flip end ('+fmt(rc[i].ev.flip.end)+') and '+rc[i+1].cy.id+' transplant ('+fmt(rc[i+1].cy.dates.transplantRoom)+').',[rc[i].cy.id,rc[i+1].cy.id]);
+    }
+  });
+  list.sort((a,b)=>(a.date<b.date?-1:1));
+  const rank={crit:0,warn:1,info:2};
+  return list;
+}
+
+/* ===================== app core: state, auth, router, publish ===================== */
+let S=null;           // live state
+let USER=null;        // {name,role}
+let DIRTY=false;
+let VIEW='timeline';
+let TL_ZOOM=6;        // px per day
+let TL_HISTORY=false;
+
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isAdmin=()=>USER&&USER.role==='admin';
+const LS_DRAFT='ccgl_cult_draft_v1', LS_TOKEN='ccgl_cult_gh_token', SS_USER='ccgl_cult_user';
+
+async function boot(){
+  let remote=null;
+  try{ const r=await fetch('state.json?ts='+Date.now(),{cache:'no-store'}); if(r.ok) remote=await r.json(); }catch(e){}
+  S = remote || JSON.parse(JSON.stringify(DEFAULT_STATE));
+  const draft=localStorage.getItem(LS_DRAFT);
+  if(draft){ try{ const d=JSON.parse(draft); if(!remote || (d.meta&&remote.meta&&d.meta.updatedAt>=remote.meta.updatedAt)){ S=d; DIRTY=true; } }catch(e){} }
+  const saved=sessionStorage.getItem(SS_USER);
+  if(saved){ try{ USER=JSON.parse(saved); }catch(e){} }
+  if(USER) enterApp(); else showLogin();
+}
+
+function showLogin(){
+  $('#login').style.display='flex'; $('#app').classList.remove('on');
+  const sel=$('#login-name'); sel.innerHTML=S.config.users.map(u=>`<option>${esc(u.name)}</option>`).join('');
+}
+function doLogin(){
+  const name=$('#login-name').value, pw=$('#login-pw').value;
+  const u=S.config.users.find(u=>u.name===name&&u.pw===pw);
+  if(!u){ $('#login-err').textContent='Wrong password.'; return; }
+  USER={name:u.name,role:u.role};
+  sessionStorage.setItem(SS_USER,JSON.stringify(USER));
+  enterApp();
+}
+function logout(){ sessionStorage.removeItem(SS_USER); location.reload(); }
+
+function enterApp(){
+  $('#login').style.display='none'; $('#app').classList.add('on');
+  $('#who').textContent=USER.name+' · '+(isAdmin()?'editor':'view only');
+  nav(VIEW);
+}
+
+function markDirty(){
+  DIRTY=true;
+  S.meta.updatedAt=todayISO(); S.meta.updatedBy=USER?USER.name:'?';
+  localStorage.setItem(LS_DRAFT,JSON.stringify(S));
+  updateDirtyUI();
+}
+function updateDirtyUI(){
+  $('#pub-hint').style.display=DIRTY?'inline':'none';
+}
+function toast(msg,ms){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._x); t._x=setTimeout(()=>t.style.display='none',ms||2600); }
+
+/* ---------- publish to GitHub ---------- */
+async function publish(){
+  if(!isAdmin()) return;
+  const P=S.config.publish;
+  let tok=localStorage.getItem(LS_TOKEN);
+  if(!tok){ tok=prompt('Paste the GitHub personal access token (stored only in this browser):'); if(!tok) return; localStorage.setItem(LS_TOKEN,tok.trim()); }
+  const api=`https://api.github.com/repos/${P.owner}/${P.repo}/contents/${P.path}`;
+  toast('Publishing…',8000);
+  try{
+    let sha;
+    const g=await fetch(api+'?ref='+P.branch,{headers:{Authorization:'Bearer '+tok}});
+    if(g.ok){ sha=(await g.json()).sha; }
+    const body={message:'Update schedule — '+USER.name+' '+new Date().toLocaleString(),branch:P.branch,content:btoa(unescape(encodeURIComponent(JSON.stringify(S,null,2))))};
+    if(sha) body.sha=sha;
+    const r=await fetch(api,{method:'PUT',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.message||r.status); }
+    DIRTY=false; localStorage.removeItem(LS_DRAFT); updateDirtyUI();
+    toast('Published ✓ — live in ~30s');
+  }catch(e){
+    if(String(e.message).match(/credentials|401/i)) localStorage.removeItem(LS_TOKEN);
+    toast('Publish failed: '+e.message,6000);
+  }
+}
+
+/* ---------- router ---------- */
+const VIEWS={timeline:renderTimeline,cycles:renderCycles,orders:renderOrders,conflicts:renderConflicts,history:renderHistory,settings:renderSettings};
+function nav(v){
+  VIEW=v;
+  $$('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
+  render();
+}
+function render(){
+  const conf=detectConflicts(S);
+  const n=conf.filter(c=>c.sev!=='info').length;
+  const cnt=$('#nav-conf-cnt'); cnt.textContent=n; cnt.classList.toggle('zero',n===0);
+  VIEWS[VIEW](conf);
+  updateDirtyUI();
+}
+
+/* ---------- shared helpers ---------- */
+function roomOf(id){ return S.config.rooms.find(r=>r.id===id)||{id,name:id,color:'#888'}; }
+function cycleById(id){ return S.cycles.find(c=>c.id===id); }
+function nextCode(roomId){
+  let mx=0;
+  S.cycles.filter(c=>c.room===roomId).forEach(c=>{ const m=c.id.match(/H(\d+)/); if(m) mx=Math.max(mx,+m[1]); });
+  return roomId+'H'+String(mx+1).padStart(2,'0');
+}
+function sevIcon(s){ return s==='crit'?'⛔':s==='warn'?'⚠️':'ℹ️'; }
+function sevBadge(s){ return `<span class="badge ${s==='crit'?'crit':s==='warn'?'warn':'info'}">${s==='crit'?'critical':s}</span>`; }
+
+document.addEventListener('DOMContentLoaded',boot);
+
+/* ===================== TIMELINE ===================== */
+function tlRange(){
+  const t=todayISO();
+  let s=addISO(t,-45), e=addISO(t,200);
+  const cys=S.cycles.filter(c=>TL_HISTORY||!c.archived);
+  cys.forEach(c=>{
+    const ev=deriveCycle(c,S.config);
+    Object.values(ev).forEach(seg=>{ if(seg&&seg.start){ if(TL_HISTORY&&seg.start<s)s=seg.start; if(seg.end>e)e=addISO(seg.end,14); }});
+  });
+  return {s:addISO(s,-3),e};
+}
+
+const KINDCOLOR={clone:'#00cec9',rack:'#8DC63F',roomVeg:'#8DC63Fcc',flower:null,ff:'#e84393',harvest:'#e74c3c',flip:'#5a7088',hang:null,bins:'#f0d5a5',defole:'#f39c12'};
+
+function laneBars(cycles,kinds,laneKind){
+  // returns [{cy,seg,kind,color,label}]
+  const out=[];
+  cycles.forEach(c=>{
+    const ev=deriveCycle(c,S.config), rm=roomOf(c.room);
+    kinds.forEach(k=>{
+      const seg=ev[k]; if(!seg) return;
+      let color=KINDCOLOR[k], label='';
+      if(k==='flower'){ color=rm.color; label=c.id; }
+      if(k==='roomVeg'){ label='veg'; }
+      if(k==='rack'){ color=rm.color; label=c.id+' · rack veg'; }
+      if(k==='clone'){ color=rm.color; label=c.id+' · clones'; }
+      if(k==='hang'){ color=rm.color; label=c.id+' · hanging'; }
+      if(k==='bins'){ label=c.id+' · bins'; }
+      if(k==='harvest'){ label='HARVEST'; }
+      if(k==='ff'){ label='FF'; }
+      if(k==='flip'){ label='flip'; }
+      out.push({cy:c,seg,kind:k,color,label});
+    });
+  });
+  return out;
+}
+
+function renderTimeline(conflicts){
+  const {s:RS,e:RE}=tlRange();
+  const days=diffDays(RS,RE)+1, Z=TL_ZOOM, W=days*Z, t=todayISO();
+  const live=S.cycles.filter(c=>!c.archived);
+  const shown=TL_HISTORY?S.cycles:live;
+
+  // lanes
+  const lanes=[];
+  S.config.rooms.filter(r=>r.active||shown.some(c=>c.room===r.id)).forEach(r=>{
+    lanes.push({id:r.id,nm:r.name,ds:r.lights+' lights',cycles:shown.filter(c=>c.room===r.id),kinds:['roomVeg','flower','ff','harvest','flip'],h:52});
+  });
+  lanes.push({id:'RACK',nm:'Veg Rack',ds:'rack rotation',cycles:shown,kinds:['rack'],h:44});
+  lanes.push({id:'CLONE',nm:'Clone / Mom',ds:'cuts & rooting',cycles:shown,kinds:['clone'],h:44});
+  lanes.push({id:'DRY',nm:'Dry Room',ds:'hang → bins',cycles:shown,kinds:['hang','bins'],h:60});
+
+  // month + day headers
+  let months='',dayCells='',gridLines='';
+  let cur=RS;
+  while(cur<=RE){
+    const d=new Date(pd(cur));
+    if(d.getUTCDate()===1||cur===RS){
+      const mEnd=iso(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0));
+      const w=(diffDays(cur,mEnd>RE?RE:mEnd)+1)*Z;
+      months+=`<div class="m" style="left:${diffDays(RS,cur)*Z}px;width:${w}px">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}</div>`;
+    }
+    const x=diffDays(RS,cur)*Z;
+    if(Z>=6){ if(Z>=10||dow(cur)===1) dayCells+=`<div class="d ${isWeekend(cur)?'we':''}" style="left:${x}px;width:${Z}px">${new Date(pd(cur)).getUTCDate()}</div>`; }
+    else if(dow(cur)===1) dayCells+=`<div class="d" style="left:${x}px;width:${Z*7}px">${fmt(cur)}</div>`;
+    if(dow(cur)===1) gridLines+=`<div class="tl-grid-line" style="left:${x}px"></div>`;
+    cur=addISO(cur,1);
+  }
+
+  // conflict flags grouped by date
+  const rank={crit:0,warn:1,info:2};
+  const byDate={};
+  conflicts.forEach(c=>{ if(c.date>=RS&&c.date<=RE){ if(!byDate[c.date]||rank[c.sev]<rank[byDate[c.date].sev]) byDate[c.date]={sev:c.sev,items:[]}; }});
+  conflicts.forEach(c=>{ if(byDate[c.date]) byDate[c.date].items.push(c); });
+  let flags='';
+  Object.entries(byDate).forEach(([d,g])=>{
+    flags+=`<div class="tl-flag ${g.sev}" style="left:${diffDays(RS,d)*Z+Z/2-5}px;top:5px" data-tip="${esc(g.items.map(i=>sevIcon(i.sev)+' '+i.title).join('\n'))}" onclick="nav('conflicts')"></div>`;
+  });
+
+  // lanes html
+  let lanesHtml='';
+  lanes.forEach(L=>{
+    const bars=laneBars(L.cycles,L.kinds,L.id).filter(b=>b.seg.end>=RS&&b.seg.start<=RE);
+    // sub-row assignment for overlap (esp. DRY + RACK + CLONE)
+    const rows=[];
+    bars.sort((a,b)=>a.seg.start<b.seg.start?-1:1).forEach(b=>{
+      let ri=rows.findIndex(rEnd=>b.seg.start>rEnd);
+      if(L.id!=='DRY'&&L.kinds.length>1) ri=0; // room lanes: everything on one row (phases are sequential per room)
+      if(ri<0){ rows.push(b.seg.end); ri=rows.length-1; } else rows[ri]=b.seg.end>rows[ri]?b.seg.end:rows[ri];
+      b.row=ri;
+    });
+    const nRows=Math.max(1,rows.length);
+    const rowH=L.id==='DRY'||nRows>1?Math.min(24,(L.h-8)/nRows):L.h-16;
+    let html='';
+    // harvest-window shading + defole marks for room lanes
+    if(L.kinds.includes('flower')) L.cycles.forEach(c=>{
+      const ev=deriveCycle(c,S.config); if(!ev.window) return;
+      if(ev.window.end<RS||ev.window.start>RE) {} else
+      html+=`<div style="position:absolute;top:4px;bottom:4px;left:${diffDays(RS,ev.window.start)*Z}px;width:${(diffDays(ev.window.start,ev.window.end)+1)*Z}px;background:repeating-linear-gradient(45deg,#4E9E8E18 0 6px,transparent 6px 12px);border-radius:4px;pointer-events:none"></div>`;
+      ['defole1','defole2'].forEach(k=>{
+        const dseg=ev[k]; if(!dseg||dseg.end<RS||dseg.start>RE) return;
+        html+=`<div class="tl-mark" style="left:${diffDays(RS,dseg.start)*Z}px;width:${(diffDays(dseg.start,dseg.end)+1)*Z}px;top:4px;height:12px;background:#f39c12" data-tip="${esc(c.id+' — Defole '+dseg.n+' · '+fmt(dseg.start)+'–'+fmt(dseg.end)+' (flower day '+(ev.flowerDayOf(dseg.start))+')')}" onclick="openCycle('${c.id}')">${(diffDays(dseg.start,dseg.end)+1)*Z>=48?'DEFOLE':''}</div>`;
+      });
+    });
+    bars.forEach(b=>{
+      const x=diffDays(RS,b.seg.start<RS?RS:b.seg.start)*Z;
+      const w=Math.max(Z,(diffDays((b.seg.start<RS?RS:b.seg.start),(b.seg.end>RE?RE:b.seg.end))+1)*Z-1);
+      const top=b.kind==='defole'?4:(L.kinds.includes('flower')?18:6+b.row*(rowH+3));
+      const h=L.kinds.includes('flower')?(L.h-24):rowH;
+      const bg=b.kind==='bins'?'#c9a86a':b.color;
+      const op=b.kind==='roomVeg'?'55':(b.kind==='flip'?'66':(b.kind==='rack'?'99':(b.kind==='clone'?'77':(b.kind==='hang'?'aa':''))));
+      const est=b.cy.estimated?' · est.':'';
+      html+=`<div class="tl-bar" style="left:${x}px;width:${w}px;top:${top}px;height:${h}px;background:${bg}${op}" data-tip="${esc(b.cy.id+' — '+({clone:'Clones (cut → rack)',rack:'Veg on rack',roomVeg:'Veg in room',flower:'Flower',ff:'FF harvest',harvest:'Dry-flower harvest',flip:'Room flip',hang:'Dry room — hanging',bins:'Dry room — in bins'})[b.kind]+' · '+fmtR(b.seg.start)+' – '+fmtR(b.seg.end)+est)}" onclick="openCycle('${b.cy.id}')"><span class="lbl">${w>34?esc(b.label):''}</span></div>`;
+    });
+    lanesHtml+=`<div class="tl-lane" style="height:${L.h}px">${gridLines}${html}
+      <div class="tl-today" style="left:${diffDays(RS,t)*Z}px"></div>
+      <div class="tl-lane-label"><span class="nm">${esc(L.nm)}</span><span class="ds">${esc(L.ds)}</span></div></div>`;
+  });
+
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Production Timeline</h2><div class="sub">All rooms, veg rack, clones & dry room · today is ${fmtR(t)}</div></div>
+    <div class="hd-actions">${headerButtons()}</div></div>
+  <div class="tl-controls">
+    <div class="zoom">${[['Month',3],['Default',6],['Day',12]].map(([n,z])=>`<button class="${TL_ZOOM===z?'on':''}" onclick="TL_ZOOM=${z};render()">${n}</button>`).join('')}</div>
+    <button class="btn small" onclick="TL_HISTORY=!TL_HISTORY;render()">${TL_HISTORY?'Hide':'Show'} history</button>
+    <button class="btn small" onclick="scrollToToday()">↦ Today</button>
+    <span class="small faint">click any bar to open its cycle</span>
+  </div>
+  <div class="tl-wrap">
+    <div class="tl-scroll" id="tl-scroll"><div class="tl-inner" style="width:${W}px">
+      <div class="tl-months" style="position:relative">${months}<div style="position:absolute;left:${diffDays(RS,t)*Z}px" class="tl-today-tag">TODAY</div></div>
+      <div class="tl-days">${dayCells}${flags}</div>
+      ${lanesHtml}
+    </div></div>
+    <div class="tl-legend">
+      <span class="k"><span class="sw" style="background:#00cec9"></span>Clones</span>
+      <span class="k"><span class="sw" style="background:#8DC63F"></span>Veg</span>
+      <span class="k"><span class="sw" style="background:#4E9E8E"></span>Flower F1</span>
+      <span class="k"><span class="sw" style="background:#4A90B5"></span>Flower F2</span>
+      <span class="k"><span class="sw" style="background:#9b59b6"></span>Flower F3</span>
+      <span class="k"><span class="sw" style="background:repeating-linear-gradient(45deg,#4E9E8E55 0 4px,transparent 4px 8px)"></span>Harvest window (d56–65)</span>
+      <span class="k"><span class="sw" style="background:#f39c12"></span>Defole</span>
+      <span class="k"><span class="sw" style="background:#e84393"></span>FF harvest</span>
+      <span class="k"><span class="sw" style="background:#e74c3c"></span>Harvest</span>
+      <span class="k"><span class="sw" style="background:#5a7088"></span>Room flip</span>
+      <span class="k"><span class="sw" style="background:#c9a86a"></span>Dry: bins</span>
+      <span class="k"><span style="color:var(--red)">●</span>/<span style="color:var(--orange)">●</span>/<span style="color:var(--blue)">●</span> conflicts</span>
+    </div>
+  </div>
+  ${nextUpPanel()}`;
+  attachTips();
+  scrollToToday();
+}
+function scrollToToday(){
+  const sc=$('#tl-scroll'); if(!sc) return;
+  const {s:RS}=tlRange();
+  sc.scrollLeft=Math.max(0,diffDays(RS,todayISO())*TL_ZOOM-sc.clientWidth*0.35);
+}
+
+function nextUpPanel(){
+  const t=todayISO(), items=[];
+  S.cycles.filter(c=>!c.archived).forEach(c=>{
+    const ev=deriveCycle(c,S.config);
+    [['cloneCut','Clone cut',c.dates.cloneCut],['transplantRack','Transplant → rack',c.dates.transplantRack],['transplantRoom','Transplant → room',c.dates.transplantRoom]].forEach(([k,nm,d])=>{ if(d&&d>=t) items.push({d,nm,cy:c.id}); });
+    if(ev.defole1&&ev.defole1.start>=t) items.push({d:ev.defole1.start,nm:'Defole 1',cy:c.id});
+    if(ev.defole2&&ev.defole2.start>=t) items.push({d:ev.defole2.start,nm:'Defole 2',cy:c.id});
+    if(ev.ff&&ev.ff.start>=t) items.push({d:ev.ff.start,nm:'FF harvest',cy:c.id});
+    if(ev.harvest&&ev.harvest.start>=t) items.push({d:ev.harvest.start,nm:'Harvest',cy:c.id});
+    if(ev.flip&&ev.flip.start>=t) items.push({d:ev.flip.start,nm:'Room flip',cy:c.id});
+    if(ev.bins&&ev.bins.end>=t) items.push({d:ev.bins.end,nm:'Bins out of dry room',cy:c.id});
+  });
+  items.sort((a,b)=>a.d<b.d?-1:1);
+  const rows=items.slice(0,10).map(i=>{
+    const dd=diffDays(t,i.d);
+    return `<tr onclick="openCycle('${i.cy}')" style="cursor:pointer"><td class="mono">${fmtR(i.d)}</td><td>${esc(i.nm)}</td><td class="muted">${i.cy}</td><td class="mono muted">${dd===0?'today':'in '+dd+'d'}</td></tr>`;
+  }).join('');
+  return `<div class="card" style="margin-top:16px"><h3>Next up</h3><table class="tbl"><thead><tr><th>Date</th><th>Event</th><th>Cycle</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan=4 class=empty>Nothing scheduled ahead.</td></tr>'}</tbody></table></div>`;
+}
+
+function headerButtons(){
+  return (isAdmin()?`<span id="pub-hint" class="badge warn" style="display:none">unpublished changes</span>
+    <button class="btn primary" onclick="publish()">Publish</button>`:`<span id="pub-hint" style="display:none"></span>`);
+}
+
+/* tooltips */
+function attachTips(){
+  const tip=$('#tip');
+  $$('[data-tip]').forEach(el=>{
+    el.onmouseenter=e=>{ tip.innerHTML=esc(el.dataset.tip).replace(/\n/g,'<br>'); tip.style.display='block'; };
+    el.onmousemove=e=>{ tip.style.left=Math.min(e.clientX+14,window.innerWidth-320)+'px'; tip.style.top=(e.clientY+16)+'px'; };
+    el.onmouseleave=()=>tip.style.display='none';
+  });
+}
+
+/* ===================== CONFLICTS ===================== */
+function renderConflicts(conflicts){
+  const t=todayISO();
+  const fut=conflicts.filter(c=>c.date>=t), past=conflicts.filter(c=>c.date<t);
+  const row=c=>`<div class="cf-row"><div class="ic">${sevIcon(c.sev)}</div>
+    <div><div class="tt">${esc(c.title)} ${sevBadge(c.sev)}</div><div class="dd">${esc(c.detail)}</div>
+    <div class="small faint" style="margin-top:4px">${c.cycles.map(id=>`<a href="javascript:openCycle('${id}')">${id}</a>`).join(' · ')}</div></div>
+    <div class="dt">${fmtR(c.date)}</div></div>`;
+  const groups=['crit','warn','info'].map(sv=>{
+    const items=fut.filter(c=>c.sev===sv);
+    if(!items.length) return '';
+    return `<div class="card" style="margin-bottom:14px;padding:0"><h3 style="padding:14px 16px 0">${sv==='crit'?'⛔ Critical':sv==='warn'?'⚠️ Warnings':'ℹ️ Heads-up'} <span class="muted">(${items.length})</span></h3>${items.map(row).join('')}</div>`;
+  }).join('');
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Conflicts</h2><div class="sub">Nothing is auto-moved — these are flags to plan around. Adjust dates in the cycle editor to clear them.</div></div>
+  <div class="hd-actions">${headerButtons()}</div></div>
+  ${fut.length?groups:`<div class="card"><div class="empty">✅ No upcoming conflicts detected across ${S.cycles.filter(c=>!c.archived).length} active cycles.</div></div>`}
+  ${past.length?`<details style="margin-top:16px"><summary class="muted small" style="cursor:pointer">${past.length} past conflict(s)</summary><div class="card" style="margin-top:8px;padding:0">${past.map(row).join('')}</div></details>`:''}`;
+}
+
+/* ===================== CYCLES ===================== */
+function cycleCard(c){
+  const ev=deriveCycle(c,S.config), st=cycleStatus(c,ev), rm=roomOf(c.room);
+  let prog='';
+  if(ev.flower){
+    const total=diffDays(ev.flower.start,ev.harvest.end), done=Math.max(0,Math.min(total,diffDays(ev.flower.start,todayISO())));
+    if(st.phase==='flower'||st.phase==='ff'||st.phase==='harvest') prog=`<div class="prog"><i style="width:${Math.round(done/total*100)}%;background:${rm.color}"></i></div><div class="small faint">flower day ${ev.flowerDayOf(todayISO())} of ~${S.config.defaults.harvestPlanDay} planned</div>`;
+  }
+  const d=c.dates;
+  return `<div class="cy-card">
+    <div class="top"><span class="code">${esc(c.id)}</span>
+      <span class="roomtag" style="background:${rm.color}">${rm.id}</span>
+      ${c.estimated?'<span class="badge est">estimated</span>':''}
+      <span style="margin-left:auto" class="badge dim">${st.label}</span></div>
+    ${prog}
+    <div class="cy-dates">
+      <span class="k">Clone cut</span><span class="v mono">${fmtR(d.cloneCut)}</span>
+      <span class="k">→ Rack</span><span class="v mono">${fmtR(d.transplantRack)}</span>
+      <span class="k">→ Room</span><span class="v mono">${fmtR(d.transplantRoom)}</span>
+      <span class="k">Flower day 1</span><span class="v mono">${fmtR(d.flowerDay1)}</span>
+      <span class="k">Defole 1 / 2</span><span class="v mono">${ev.defole1?fmt(ev.defole1.start):'—'} / ${ev.defole2?fmt(ev.defole2.start):'—'}</span>
+      <span class="k">FF → Harvest</span><span class="v mono">${ev.ff?fmt(ev.ff.start):'—'} → ${ev.harvest?fmt(ev.harvest.start)+'–'+fmt(ev.harvest.end):'—'}</span>
+      <span class="k">Flip</span><span class="v mono">${ev.flip?fmt(ev.flip.start)+'–'+fmt(ev.flip.end):'—'}</span>
+      <span class="k">Dry: hang / bins</span><span class="v mono">${ev.hang?fmt(ev.hang.start)+'–'+fmt(ev.hang.end):'—'} / ${ev.bins?'→ '+fmt(ev.bins.end):'—'}</span>
+    </div>
+    ${c.notes?`<div class="small faint" style="margin-top:9px">${esc(c.notes)}</div>`:''}
+    <div class="cy-foot">${isAdmin()?`<button class="btn small" onclick="openCycle('${c.id}')">Edit</button>
+      <button class="btn small" onclick="archiveCycle('${c.id}')">Archive</button>`:`<button class="btn small" onclick="openCycle('${c.id}')">Details</button>`}</div>
+  </div>`;
+}
+
+function renderCycles(){
+  const live=S.cycles.filter(c=>!c.archived).sort((a,b)=>(a.dates.flowerDay1||a.dates.cloneCut||'9999')<(b.dates.flowerDay1||b.dates.cloneCut||'9999')?-1:1);
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Cycles</h2><div class="sub">Enter the 4 dates — clone cut, transplant to rack, transplant to room, flower day 1 — and the rest auto-builds.</div></div>
+  <div class="hd-actions">${isAdmin()?'<button class="btn" onclick="openCycle(null)">+ New cycle</button>':''}${headerButtons()}</div></div>
+  <div class="grid3">${live.map(cycleCard).join('')||'<div class="empty">No active cycles.</div>'}</div>`;
+}
+
+/* ---------- cycle editor modal ---------- */
+let EDIT_ID=null;
+function openCycle(id){
+  EDIT_ID=id;
+  const c=id?cycleById(id):{id:'',room:'F1',dates:{},overrides:{},notes:'',estimated:false,archived:false};
+  if(!c) return;
+  const D=S.config.defaults, o=c.overrides||{};
+  const ro=!isAdmin()?'disabled':'';
+  const dateIn=(k,v)=>`<input type="date" id="cy-${k}" value="${v||''}" ${ro}>`;
+  $('#modal-box').innerHTML=`
+  <h3>${id?esc(id):'New cycle'} ${c.estimated?'<span class="badge est">estimated</span>':''}</h3>
+  <div class="frm">
+    <div><label>Room</label><select id="cy-room" ${id?'disabled':''} onchange="$('#cy-code').value=nextCode(this.value)">${S.config.rooms.map(r=>`<option ${c.room===r.id?'selected':''} value="${r.id}">${r.name}</option>`).join('')}</select></div>
+    <div><label>Code</label><input id="cy-code" value="${esc(c.id||nextCode('F1'))}" ${id?'disabled':''}></div>
+    <div><label>1 · Clone cut</label>${dateIn('cloneCut',c.dates.cloneCut)}</div>
+    <div><label>2 · Transplant → rack</label>${dateIn('transplantRack',c.dates.transplantRack)}<div class="hint">suggest: cut + ${D.cutToRackDays}d</div></div>
+    <div><label>3 · Transplant → room</label>${dateIn('transplantRoom',c.dates.transplantRoom)}<div class="hint">suggest: rack + ${D.rackToRoomDays}d</div></div>
+    <div><label>4 · Flower day 1</label>${dateIn('flowerDay1',c.dates.flowerDay1)}</div>
+    <div class="full" style="display:flex;gap:8px;align-items:center">
+      ${isAdmin()?`<button class="btn small" onclick="suggestDates()">↪ Suggest 2-4 from clone cut</button>`:''}
+      <label style="margin:0;display:flex;align-items:center;gap:6px;text-transform:none;font-size:12px"><input type="checkbox" id="cy-est" ${c.estimated?'checked':''} ${ro} style="width:auto"> dates are estimates</label>
+    </div>
+    <div class="full"><label>Overrides <span style="text-transform:none">(leave blank to use the auto-built date)</span></label></div>
+    <div><label class="small">Defole 1 start <span class="faint">(auto: flower d${D.defole1Day})</span></label>${dateIn('defole1Start',o.defole1Start)}</div>
+    <div><label class="small">Defole 2 start <span class="faint">(auto: d${D.defole2Day})</span></label>${dateIn('defole2Start',o.defole2Start)}</div>
+    <div><label class="small">FF harvest start <span class="faint">(auto: ${D.ffHarvestDays}d pre-harvest)</span></label>${dateIn('ffHarvestStart',o.ffHarvestStart)}</div>
+    <div><label class="small">Harvest start <span class="faint">(auto: flower d${D.harvestPlanDay})</span></label>${dateIn('harvestStart',o.harvestStart)}</div>
+    <div><label class="small">Harvest end</label>${dateIn('harvestEnd',o.harvestEnd)}</div>
+    <div><label class="small">Flip start / end</label><div style="display:flex;gap:6px">${dateIn('flipStart',o.flipStart)}${dateIn('flipEnd',o.flipEnd)}</div></div>
+    <div class="full"><label>Notes</label><textarea id="cy-notes" rows="2" ${ro}>${esc(c.notes||'')}</textarea></div>
+  </div>
+  <div class="acts">
+    ${id&&isAdmin()?`<button class="btn danger" onclick="deleteCycle('${id}')" style="margin-right:auto">Delete</button>`:''}
+    <button class="btn" onclick="closeModal()">Close</button>
+    ${isAdmin()?`<button class="btn primary" onclick="saveCycle()">Save</button>`:''}
+  </div>`;
+  $('#modal').classList.add('on');
+}
+function suggestDates(){
+  const D=S.config.defaults, cut=$('#cy-cloneCut').value;
+  if(!cut){ toast('Set the clone cut date first'); return; }
+  const rack=addISO(cut,D.cutToRackDays), room=addISO(rack,D.rackToRoomDays);
+  $('#cy-transplantRack').value=rack; $('#cy-transplantRoom').value=room; $('#cy-flowerDay1').value=addISO(room,D.roomToFlowerDays||0);
+}
+function saveCycle(){
+  const v=k=>$('#cy-'+k).value||null;
+  const dates={cloneCut:v('cloneCut'),transplantRack:v('transplantRack'),transplantRoom:v('transplantRoom'),flowerDay1:v('flowerDay1')};
+  const overrides={};
+  ['defole1Start','defole2Start','ffHarvestStart','harvestStart','harvestEnd','flipStart','flipEnd'].forEach(k=>{ if(v(k)) overrides[k]=v(k); });
+  if(EDIT_ID){
+    const c=cycleById(EDIT_ID); c.dates=dates; c.overrides=overrides; c.notes=$('#cy-notes').value; c.estimated=$('#cy-est').checked;
+  }else{
+    const code=$('#cy-code').value.trim()||nextCode($('#cy-room').value);
+    if(cycleById(code)){ toast('Code '+code+' already exists'); return; }
+    S.cycles.push({id:code,room:$('#cy-room').value,archived:false,estimated:$('#cy-est').checked,dates,overrides,notes:$('#cy-notes').value});
+  }
+  markDirty(); closeModal(); render(); toast('Saved — remember to Publish');
+}
+function archiveCycle(id){ const c=cycleById(id); c.archived=!c.archived; markDirty(); render(); }
+function deleteCycle(id){ if(!confirm('Delete '+id+' entirely? (Archive keeps it in History instead.)')) return; S.cycles=S.cycles.filter(c=>c.id!==id); markDirty(); closeModal(); render(); }
+function closeModal(){ $('#modal').classList.remove('on'); }
+
+/* ===================== HISTORY ===================== */
+function renderHistory(){
+  const old=S.cycles.filter(c=>c.archived).sort((a,b)=>(a.dates.flowerDay1||'')<(b.dates.flowerDay1||'')?1:-1);
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>History</h2><div class="sub">Archived cycles — kept out of the main views. Toggle "Show history" on the timeline to see them there.</div></div>
+  <div class="hd-actions">${headerButtons()}</div></div>
+  <div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Cycle</th><th>Room</th><th>Flower day 1</th><th>Harvest</th><th>Notes</th><th></th></tr></thead><tbody>
+  ${old.map(c=>{const ev=deriveCycle(c,S.config);return `<tr><td><b>${c.id}</b>${c.estimated?' <span class="badge est">est</span>':''}</td><td>${roomOf(c.room).name}</td><td class="mono">${fmtR(c.dates.flowerDay1)}</td><td class="mono">${ev.harvest?fmtR(ev.harvest.start)+' – '+fmt(ev.harvest.end):'—'}</td><td class="small muted">${esc(c.notes||'')}</td><td>${isAdmin()?`<button class="btn small" onclick="openCycle('${c.id}')">Edit</button> <button class="btn small" onclick="archiveCycle('${c.id}')">Restore</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan=6 class=empty>No archived cycles.</td></tr>'}
+  </tbody></table></div>`;
+}
+
+/* ===================== CLONE ORDERS ===================== */
+function orderCounts(o){
+  const rm=roomOf(o.room), D=S.config.defaults;
+  const per=rm.clonesPerSlot||90, cut=Math.ceil(per*(1+(D.overagePct||70)/100));
+  const n=o.slots.length;
+  return {per,cut,needed:per*n,cutTotal:cut*n};
+}
+function renderOrders(){
+  const orders=[...S.cloneOrders].sort((a,b)=>((b.cutDate||b.transplantDate||'')>(a.cutDate||a.transplantDate||'')?1:-1));
+  const cards=orders.map((o,i)=>{
+    const cts=orderCounts(o), rm=roomOf(o.room);
+    const open=i===0?'open':'';
+    const stBadge={planned:'<span class="badge info">planned</span>',cut:'<span class="badge warn">cut — rooting</span>',done:'<span class="badge ok">done</span>'}[o.status]||'';
+    const succ=o.actualCount?Math.round(o.actualCount/cts.needed*100):null;
+    return `<div class="co-card ${open}" id="co-${o.id}">
+    <div class="co-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="arrow">▶</span>
+      <span class="roomtag" style="background:${rm.color};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;color:#04110e">${rm.id}</span>
+      <span class="ttl">Cut ${fmtR(o.cutDate)||'TBD'}</span>
+      <span class="meta">→ transplant ${fmtR(o.transplantDate)||'TBD'}</span>
+      ${stBadge} ${o.imported?'<span class="badge dim">imported</span>':''}
+      <span class="meta" style="margin-left:auto">${cts.needed} needed · ${cts.cutTotal} cut</span>
+    </div>
+    <div class="co-body">
+      <div class="co-stats">
+        <span><b>${cts.per}</b> clones / slot</span><span><b>${cts.cut}</b> cut / slot (+${S.config.defaults.overagePct}%)</span>
+        <span><b>${cts.needed}</b> total needed</span><span><b>${cts.cutTotal}</b> total cut</span>
+        ${succ!=null?`<span><b>${succ}%</b> of needed survived (${o.actualCount})</span>`:''}
+      </div>
+      <table class="tbl"><thead><tr><th>Location</th><th>Strain</th><th>Note</th></tr></thead><tbody>
+        ${o.slots.map(s=>`<tr><td class="muted">${esc(s.loc)}</td><td>${esc(s.strain)||'<span class=faint>—</span>'}</td><td class="small faint">${esc(s.note||'')}</td></tr>`).join('')}
+      </tbody></table>
+      ${o.notes?`<div class="small faint" style="margin-top:8px">${esc(o.notes)}</div>`:''}
+      ${isAdmin()?`<div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn small" onclick="openOrder('${o.id}')">Edit</button>
+        <select class="small" onchange="setOrderStatus('${o.id}',this.value)" style="padding:4px 8px"><option ${o.status==='planned'?'selected':''}>planned</option><option ${o.status==='cut'?'selected':''}>cut</option><option ${o.status==='done'?'selected':''}>done</option></select>
+        <input type="number" placeholder="actual survived #" value="${o.actualCount||''}" onchange="setOrderActual('${o.id}',this.value)" style="width:150px;padding:4px 8px">
+        <button class="btn small danger" onclick="deleteOrder('${o.id}')" style="margin-left:auto">Delete</button></div>`:''}
+    </div></div>`;
+  }).join('');
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Clone Orders</h2><div class="sub">Every order, newest first. Counts auto-calc from room settings + ${S.config.defaults.overagePct}% overage.</div></div>
+  <div class="hd-actions">${isAdmin()?'<button class="btn" onclick="openOrder(null)">+ New order</button>':''}${headerButtons()}</div></div>
+  <div style="display:flex;flex-direction:column;gap:10px">${cards||'<div class=empty>No orders yet.</div>'}</div>
+  <div class="card" style="margin-top:20px;padding:0"><h3 style="padding:14px 16px 0">Strain list</h3>
+    <table class="tbl"><thead><tr><th>Strain</th><th>Category</th><th>Abbr</th>${isAdmin()?'<th></th>':''}</tr></thead><tbody>
+    ${S.strains.map((s,i)=>`<tr><td>${esc(s.name)}</td><td class="muted">${esc(s.category||'')}</td><td class="faint">${esc(s.abbr||'')}</td>${isAdmin()?`<td><button class="btn small" onclick="delStrain(${i})">✕</button></td>`:''}</tr>`).join('')}
+    </tbody></table>
+    ${isAdmin()?`<div style="display:flex;gap:8px;padding:12px 16px"><input id="ns-name" placeholder="New strain name"><input id="ns-cat" placeholder="Category" style="width:130px"><input id="ns-abbr" placeholder="Abbr" style="width:80px"><button class="btn small" onclick="addStrain()">Add</button></div>`:''}
+  </div>
+  <datalist id="strain-dl">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>`;
+}
+function addStrain(){ const n=$('#ns-name').value.trim(); if(!n) return; S.strains.push({name:n,category:$('#ns-cat').value.trim(),abbr:$('#ns-abbr').value.trim()}); S.strains.sort((a,b)=>a.name<b.name?-1:1); markDirty(); render(); }
+function delStrain(i){ S.strains.splice(i,1); markDirty(); render(); }
+function setOrderStatus(id,v){ S.cloneOrders.find(o=>o.id===id).status=v; markDirty(); }
+function setOrderActual(id,v){ S.cloneOrders.find(o=>o.id===id).actualCount=+v||null; markDirty(); render(); }
+function deleteOrder(id){ if(!confirm('Delete this clone order?'))return; S.cloneOrders=S.cloneOrders.filter(o=>o.id!==id); markDirty(); render(); }
+
+let EDIT_ORDER=null;
+function openOrder(id){
+  EDIT_ORDER=id;
+  const D=S.config.defaults;
+  let o=id?S.cloneOrders.find(x=>x.id===id):null;
+  if(!o){
+    const room=S.config.rooms[0];
+    const prev=S.cloneOrders.filter(x=>x.room===room.id).sort((a,b)=>(a.cutDate||'')<(b.cutDate||'')?1:-1)[0];
+    o={id:null,room:room.id,cutDate:'',transplantDate:'',status:'planned',
+       slots:(prev?prev.slots.map(s=>({loc:s.loc,strain:''})):Array.from({length:room.slots},(_,i)=>({loc:'Row '+(Math.floor(i/2)+1)+' '+(i%2?'Top':'Bottom'),strain:''}))),notes:''};
+  }
+  const rows=o.slots.map((s,i)=>`<tr><td class="muted small">${esc(s.loc)}</td>
+    <td><input list="strain-dl" id="os-${i}" value="${esc(s.strain)}" style="width:100%"></td>
+    <td><input id="on-${i}" value="${esc(s.note||'')}" placeholder="note" style="width:100%"></td></tr>`).join('');
+  $('#modal-box').innerHTML=`
+  <h3>${id?'Edit clone order':'New clone order'}</h3>
+  <div class="frm">
+    <div><label>Room</label><select id="o-room" onchange="orderRoomHint()">${S.config.rooms.map(r=>`<option value="${r.id}" ${o.room===r.id?'selected':''}>${r.name} (${r.clonesPerSlot}/slot)</option>`).join('')}</select></div>
+    <div><label>Status</label><select id="o-status"><option ${o.status==='planned'?'selected':''}>planned</option><option ${o.status==='cut'?'selected':''}>cut</option><option ${o.status==='done'?'selected':''}>done</option></select></div>
+    <div><label>Cut date</label><input type="date" id="o-cut" value="${o.cutDate||''}" onchange="if(!$('#o-tp').value)$('#o-tp').value=addISO(this.value,${(D.cutToRackDays||21)+(D.rackToRoomDays||10)})"></div>
+    <div><label>Transplant date</label><input type="date" id="o-tp" value="${o.transplantDate||''}"><div class="hint">suggest: cut + ${(D.cutToRackDays||21)+(D.rackToRoomDays||10)}d</div></div>
+    <div class="full"><div id="o-hint" class="notice" style="margin:0"></div></div>
+    <div class="full" style="max-height:320px;overflow-y:auto"><table class="tbl"><thead><tr><th style="width:110px">Slot</th><th>Strain</th><th style="width:130px">Note</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="full"><label>Notes</label><textarea id="o-notes" rows="2">${esc(o.notes||'')}</textarea></div>
+  </div>
+  <div class="acts"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveOrder()">Save</button></div>
+  <datalist id="strain-dl">${S.strains.map(s=>`<option value="${esc(s.name)}">`).join('')}</datalist>`;
+  window._orderSlots=o.slots;
+  $('#modal').classList.add('on');
+  orderRoomHint();
+}
+function orderRoomHint(){
+  const rm=roomOf($('#o-room').value), D=S.config.defaults;
+  const cut=Math.ceil(rm.clonesPerSlot*(1+D.overagePct/100));
+  $('#o-hint').innerHTML=`<b>${rm.name}:</b> ${window._orderSlots.length} slots × ${rm.clonesPerSlot} = <b>${rm.clonesPerSlot*window._orderSlots.length} needed</b> · cut ${cut}/slot = <b>${cut*window._orderSlots.length} total cuts</b> (+${D.overagePct}% overage)`;
+}
+function saveOrder(){
+  const slots=window._orderSlots.map((s,i)=>({loc:s.loc,strain:$('#os-'+i).value.trim(),note:$('#on-'+i).value.trim()||undefined}));
+  const room=$('#o-room').value, cut=$('#o-cut').value||null, tp=$('#o-tp').value||null;
+  if(EDIT_ORDER){
+    const o=S.cloneOrders.find(x=>x.id===EDIT_ORDER);
+    Object.assign(o,{room,cutDate:cut,transplantDate:tp,status:$('#o-status').value,slots,notes:$('#o-notes').value});
+  }else{
+    S.cloneOrders.push({id:'co-'+(cut||tp||Date.now())+'-'+room+'-'+Math.floor(Math.random()*999),room,cutDate:cut,transplantDate:tp,status:$('#o-status').value,slots,notes:$('#o-notes').value});
+  }
+  markDirty(); closeModal(); render(); toast('Order saved — remember to Publish');
+}
+
+/* ===================== SETTINGS ===================== */
+function renderSettings(){
+  const D=S.config.defaults;
+  const fields=[
+    ['flowerDays','Flower length (days)'],['harvestWindowStart','Harvest window opens (flower day)'],['harvestPlanDay','Planned harvest (flower day)'],
+    ['defole1Day','Defole 1 (flower day)'],['defole2Day','Defole 2 (flower day)'],['defoleLen','Defole pass length (days)'],
+    ['ffHarvestDays','FF harvest days (before dry harvest)'],['dryHarvestDays','Dry harvest days'],['flipDays','Room flip days'],
+    ['dryHangDays','Dry room: hanging (days)'],['dryBinDays','Dry room: in bins (days)'],
+    ['overagePct','Clone overage %'],['cutToRackDays','Clone cut → rack (days)'],['rackToRoomDays','Rack → room (days)'],
+    ['harvestProximityDays','Flag harvests within (days)']
+  ];
+  const ro=!isAdmin()?'disabled':'';
+  $('#main').innerHTML=`
+  <div class="pagehead"><div><h2>Settings</h2><div class="sub">These drive every auto-built date. Changing them re-computes all non-overridden events.</div></div>
+  <div class="hd-actions">${headerButtons()}</div></div>
+  <div class="card" style="margin-bottom:14px"><h3>Cycle defaults</h3><div class="set-grid">
+    ${fields.map(([k,l])=>`<div class="set-item"><label>${l}</label><input type="number" value="${D[k]}" ${ro} onchange="S.config.defaults.${k}=+this.value;markDirty();"></div>`).join('')}
+  </div><div class="small faint" style="margin-top:10px">Reminder: defole default is a ${D.defoleLen}-day pass at day ${D.defole1Day} and ${D.defole2Day} — override per-cycle when the crew starts early.</div></div>
+  <div class="card" style="margin-bottom:14px"><h3>Rooms</h3><table class="tbl"><thead><tr><th>Room</th><th>Lights</th><th>Slots</th><th>Clones/slot</th><th>Active</th></tr></thead><tbody>
+    ${S.config.rooms.map((r,i)=>`<tr><td><span class="pill-dot" style="background:${r.color}"></span><b>${r.name}</b></td>
+      <td><input type="number" style="width:75px" value="${r.lights}" ${ro} onchange="S.config.rooms[${i}].lights=+this.value;markDirty()"></td>
+      <td><input type="number" style="width:65px" value="${r.slots}" ${ro} onchange="S.config.rooms[${i}].slots=+this.value;markDirty()"></td>
+      <td><input type="number" style="width:75px" value="${r.clonesPerSlot}" ${ro} onchange="S.config.rooms[${i}].clonesPerSlot=+this.value;markDirty()"></td>
+      <td><input type="checkbox" ${r.active?'checked':''} ${ro} onchange="S.config.rooms[${i}].active=this.checked;markDirty();render()"></td></tr>`).join('')}
+  </tbody></table><div class="small faint" style="margin-top:8px">F3 clones/slot pre-scaled: 90 × 77/118 ≈ 59. Adjust once real layout is set.</div></div>
+  <div class="grid2">
+    <div class="card"><h3>Holidays</h3><textarea rows="8" style="width:100%" ${ro} onchange="setHolidays(this.value)">${(S.config.holidays||[]).map(h=>h.date+' '+h.name).join('\n')}</textarea><div class="small faint" style="margin-top:6px">One per line: YYYY-MM-DD Name</div></div>
+    <div class="card"><h3>Access & publish</h3>
+      ${isAdmin()?`<table class="tbl"><thead><tr><th>User</th><th>Role</th><th>Password</th></tr></thead><tbody>
+      ${S.config.users.map((u,i)=>`<tr><td>${esc(u.name)}</td><td>${u.role}</td><td><input style="width:110px" value="${esc(u.pw)}" onchange="S.config.users[${i}].pw=this.value;markDirty()"></td></tr>`).join('')}</tbody></table>
+      <div class="small faint" style="margin:10px 0 6px">Publishes to github.com/${S.config.publish.owner}/${S.config.publish.repo} (${S.config.publish.branch})</div>
+      <button class="btn small" onclick="localStorage.removeItem(LS_TOKEN);toast('Token cleared')">Clear saved GitHub token</button>
+      <button class="btn small" onclick="if(confirm('Discard local unpublished changes and reload from published state?')){localStorage.removeItem(LS_DRAFT);location.reload()}">Discard local draft</button>`:
+      '<div class="empty">Editor access required.</div>'}
+    </div>
+  </div>`;
+}
+function setHolidays(txt){
+  S.config.holidays=txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.*)$/);return m?{date:m[1],name:m[2]}:null;}).filter(Boolean);
+  markDirty();
+}
+
+</script>
+</body>
+</html>
