@@ -25,7 +25,7 @@
       {
         "name": "Guest",
         "role": "guest",
-        "pw": "ccgl"
+        "pw": "growlab"
       }
     ],
     "publish": {
@@ -73,7 +73,7 @@
       "ffHarvestDays": 2,
       "dryHarvestDays": 2,
       "harvestPlanDay": 63,
-      "flipDays": 9,
+      "flipDays": 10,
       "dryHangDays": 14,
       "dryBinDays": 14,
       "overagePct": 70,
@@ -954,8 +954,8 @@
   ],
   "mock": {
     "settings": {
-      "anchor": "2026-09-11",
-      "staggerDays": 30,
+      "anchor": "2026-06-25",
+      "staggerDays": 25,
       "perRoom": 3
     },
     "cycles": [
@@ -966,10 +966,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-08-11",
-          "transplantRack": "2026-09-01",
-          "transplantRoom": "2026-09-11",
-          "flowerDay1": "2026-09-11"
+          "cloneCut": "2026-05-25",
+          "transplantRack": "2026-06-15",
+          "transplantRoom": "2026-06-25",
+          "flowerDay1": "2026-06-25"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -981,10 +981,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-10-22",
-          "transplantRack": "2026-11-12",
-          "transplantRoom": "2026-11-22",
-          "flowerDay1": "2026-11-22"
+          "cloneCut": "2026-08-02",
+          "transplantRack": "2026-08-23",
+          "transplantRoom": "2026-09-02",
+          "flowerDay1": "2026-09-02"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -992,66 +992,6 @@
       {
         "id": "P·F1-3",
         "room": "F1",
-        "mock": true,
-        "archived": false,
-        "estimated": false,
-        "dates": {
-          "cloneCut": "2027-01-02",
-          "transplantRack": "2027-01-23",
-          "transplantRoom": "2027-02-02",
-          "flowerDay1": "2027-02-02"
-        },
-        "overrides": {},
-        "notes": "planner mock"
-      },
-      {
-        "id": "P·F2-1",
-        "room": "F2",
-        "mock": true,
-        "archived": false,
-        "estimated": false,
-        "dates": {
-          "cloneCut": "2026-09-10",
-          "transplantRack": "2026-10-01",
-          "transplantRoom": "2026-10-11",
-          "flowerDay1": "2026-10-11"
-        },
-        "overrides": {},
-        "notes": "planner mock"
-      },
-      {
-        "id": "P·F2-2",
-        "room": "F2",
-        "mock": true,
-        "archived": false,
-        "estimated": false,
-        "dates": {
-          "cloneCut": "2026-11-21",
-          "transplantRack": "2026-12-12",
-          "transplantRoom": "2026-12-22",
-          "flowerDay1": "2026-12-22"
-        },
-        "overrides": {},
-        "notes": "planner mock"
-      },
-      {
-        "id": "P·F2-3",
-        "room": "F2",
-        "mock": true,
-        "archived": false,
-        "estimated": false,
-        "dates": {
-          "cloneCut": "2027-02-01",
-          "transplantRack": "2027-02-22",
-          "transplantRoom": "2027-03-04",
-          "flowerDay1": "2027-03-04"
-        },
-        "overrides": {},
-        "notes": "planner mock"
-      },
-      {
-        "id": "P·F3-1",
-        "room": "F3",
         "mock": true,
         "archived": false,
         "estimated": false,
@@ -1065,16 +1005,76 @@
         "notes": "planner mock"
       },
       {
+        "id": "P·F2-1",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-06-19",
+          "transplantRack": "2026-07-10",
+          "transplantRoom": "2026-07-20",
+          "flowerDay1": "2026-07-20"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F2-2",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-08-27",
+          "transplantRack": "2026-09-17",
+          "transplantRoom": "2026-09-27",
+          "flowerDay1": "2026-09-27"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F2-3",
+        "room": "F2",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-11-04",
+          "transplantRack": "2026-11-25",
+          "transplantRoom": "2026-12-05",
+          "flowerDay1": "2026-12-05"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
+        "id": "P·F3-1",
+        "room": "F3",
+        "mock": true,
+        "archived": false,
+        "estimated": false,
+        "dates": {
+          "cloneCut": "2026-07-14",
+          "transplantRack": "2026-08-04",
+          "transplantRoom": "2026-08-14",
+          "flowerDay1": "2026-08-14"
+        },
+        "overrides": {},
+        "notes": "planner mock"
+      },
+      {
         "id": "P·F3-2",
         "room": "F3",
         "mock": true,
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-12-21",
-          "transplantRack": "2027-01-11",
-          "transplantRoom": "2027-01-21",
-          "flowerDay1": "2027-01-21"
+          "cloneCut": "2026-09-21",
+          "transplantRack": "2026-10-12",
+          "transplantRoom": "2026-10-22",
+          "flowerDay1": "2026-10-22"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1086,10 +1086,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2027-03-03",
-          "transplantRack": "2027-03-24",
-          "transplantRoom": "2027-04-03",
-          "flowerDay1": "2027-04-03"
+          "cloneCut": "2026-11-29",
+          "transplantRack": "2026-12-20",
+          "transplantRoom": "2026-12-30",
+          "flowerDay1": "2026-12-30"
         },
         "overrides": {},
         "notes": "planner mock"
