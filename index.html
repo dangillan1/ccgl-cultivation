@@ -1237,59 +1237,113 @@ function setHolidays(txt){
 
 /* ===================== 3-ROOM PLANNER (mock sandbox) ===================== */
 function mockStore(){
-  if(!S.mock) S.mock={settings:{anchor:'2026-09-11',staggerDays:23,perRoom:3},cycles:[]};
-  if(!S.mock.settings) S.mock.settings={anchor:'2026-09-11',staggerDays:23,perRoom:3};
+  if(!S.mock) S.mock={settings:{anchor:'2027-01-05',staggerDays:23,perRoom:3,template:'weeklock'},cycles:[]};
+  if(!S.mock.settings) S.mock.settings={anchor:'2027-01-05',staggerDays:23,perRoom:3,template:'weeklock'};
+  if(!S.mock.settings.template) S.mock.settings.template='even';
   if(!S.mock.cycles) S.mock.cycles=[];
   return S.mock;
 }
 function mockConfig(){
-  // same defaults/holidays, but all three rooms forced active for the sandbox
   return {...S.config, rooms:S.config.rooms.map(r=>({...r,active:true}))};
 }
-function roomInterval(){
+function roomInterval(harvestDay){
   const D=S.config.defaults;
-  // flower day 1 → next flower day 1 in the same room: harvest end (d harvestPlanDay+dryHarvestDays-1) + flip + transplant next day
-  return (D.harvestPlanDay-1)+(D.dryHarvestDays-1)+1+D.flipDays+1;
+  // flower day 1 → next flower day 1: harvest (2d) ends day hd+1, flip 4d, transplant next day
+  return (harvestDay||D.harvestPlanDay)+D.dryHarvestDays+D.flipDays-1;
 }
+function snapToDow(isoStr,targetDow){ // next date >= isoStr with day-of-week targetDow (0=Sun)
+  let d=isoStr; for(let i=0;i<7;i++){ if(dow(d)===targetDow) return d; d=addISO(d,1);} return isoStr;
+}
+
 function genMockPlan(){
   const M=mockStore(), D=S.config.defaults;
-  const anchor=$('#pl-anchor').value, stag=+$('#pl-stagger').value||23, per=Math.min(6,Math.max(1,+$('#pl-per').value||3));
+  const template=$('#pl-template').value;
+  let anchor=$('#pl-anchor').value;
+  const per=Math.min(6,Math.max(1,+$('#pl-per').value||3));
   if(!anchor){ toast('Set the F1 flower day 1 anchor date first'); return; }
-  M.settings={anchor,staggerDays:stag,perRoom:per};
-  const interval=roomInterval();
+  let stag=+$('#pl-stagger').value||23;
   M.cycles=[];
-  ['F1','F2','F3'].forEach((r,i)=>{
-    for(let k=0;k<per;k++){
-      const f1=addISO(anchor,i*stag+k*interval);
-      const troom=f1;
-      const track=addISO(troom,-(D.rackToRoomDays||10));
-      const cut=addISO(track,-(D.cutToRackDays||21));
-      M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
-        dates:{cloneCut:cut,transplantRack:track,transplantRoom:troom,flowerDay1:f1},overrides:{},notes:'planner mock'});
-    }
-  });
+
+  if(template==='weeklock'){
+    /* Weekday-locked 10-week template — every offset is a multiple of 7 so every event
+       repeats on the same weekday forever:
+       f1 = Tuesday · cut Mon (f1-36) · rack Mon (f1-15) · defoles start Mon
+       harvest day 65 (Wed-Thu) · FF Mon-Tue · flip Fri-Mon · next transplant Tue (+70)
+       Room offsets 0/21/42 → harvest gaps 21/21/28.
+       Structural collisions solved by per-room defole shifts (all stay Monday starts):
+         middle room (21d behind): defole 2 a week early (day 35) — else it lands on the leader's harvest
+         third room (42d behind): defole 1 early (day 14) AND defole 2 early (day 35)
+         first room: standard day 21 / day 42 */
+    anchor=snapToDow(anchor,2); // Tuesday
+    const interval=70; stag=21;
+    const offs=[0,21,42];
+    ['F1','F2','F3'].forEach((r,i)=>{
+      for(let k=0;k<per;k++){
+        const f1=addISO(anchor,offs[i]+k*interval);
+        const o={harvestStart:addISO(f1,64),harvestEnd:addISO(f1,65)};
+        if(i>=1) o.defole2Start=addISO(f1,34);   // day 35
+        if(i===2) o.defole1Start=addISO(f1,13);  // day 14
+        M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
+          dates:{cloneCut:addISO(f1,-36),transplantRack:addISO(f1,-15),transplantRoom:f1,flowerDay1:f1},
+          overrides:o,notes:'weekday-locked template'});
+      }
+    });
+    // dodge: clone cuts that land inside another cycle's FF→harvest block shift back one week (stays Monday)
+    const blocks=M.cycles.map(c=>({id:c.id,start:addISO(c.overrides.harvestStart,-D.ffHarvestDays),end:c.overrides.harvestEnd}));
+    M.cycles.forEach(c=>{
+      const hit=b=>blocks.some(x=>x.id!==c.id&&c.dates.cloneCut>=x.start&&c.dates.cloneCut<=x.end);
+      if(hit()) c.dates.cloneCut=addISO(c.dates.cloneCut,-7);
+    });
+    // cap dry-room bins at the day before the next hang starts (your rule: bins out early, min 5d)
+    const hangs=M.cycles.map(c=>({c,h:c.overrides.harvestStart})).sort((a,b)=>a.h<b.h?-1:1);
+    hangs.forEach((x,i)=>{
+      const hangEnd=addISO(x.h,D.dryHangDays-1);
+      const natural=addISO(hangEnd,D.dryBinDays);
+      const next=hangs[i+1]?addISO(hangs[i+1].h,-1):null;
+      x.c.overrides.dryBinsEnd=(next&&next<natural)?next:natural;
+    });
+    M.settings={anchor,staggerDays:stag,perRoom:per,template};
+  }else{
+    /* Even-stagger max-throughput: tightest repeat, weekdays drift */
+    const interval=roomInterval();
+    ['F1','F2','F3'].forEach((r,i)=>{
+      for(let k=0;k<per;k++){
+        const f1=addISO(anchor,i*stag+k*interval);
+        const troom=f1, track=addISO(troom,-(D.rackToRoomDays||10)), cut=addISO(track,-(D.cutToRackDays||21));
+        M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
+          dates:{cloneCut:cut,transplantRack:track,transplantRoom:troom,flowerDay1:f1},overrides:{},notes:'even-stagger template'});
+      }
+    });
+    M.settings={anchor,staggerDays:stag,perRoom:per,template};
+  }
   markDirty(); render();
-  toast('Mock plan generated — '+M.cycles.length+' cycles');
+  toast('Mock plan generated — '+M.cycles.length+' cycles ('+(template==='weeklock'?'weekday-locked':'even stagger')+')');
 }
 function clearMockPlan(){ if(!confirm('Clear the mock plan?'))return; mockStore().cycles=[]; markDirty(); render(); }
 
 function plannerStats(mockCys,cfg,conflicts){
-  const D=cfg.defaults, M=mockStore();
-  const interval=roomInterval();
-  const flipsYr=(365/interval);
-  const stag=M.settings.staggerDays;
-  const dryNeed=D.dryHangDays+D.dryBinDays;
-  const overflow=dryNeed-stag;
-  const harvYr=Math.round(flipsYr*3);
+  const D=cfg.defaults;
+  // derive real numbers from the generated cycles
+  const byRoom={};
+  mockCys.forEach(c=>{ if(c.dates.flowerDay1){ (byRoom[c.room]=byRoom[c.room]||[]).push(c.dates.flowerDay1); }});
+  const intervals=[];
+  Object.values(byRoom).forEach(list=>{ list.sort(); for(let i=1;i<list.length;i++) intervals.push(diffDays(list[i-1],list[i])); });
+  const avgInt=intervals.length?intervals.reduce((a,b)=>a+b,0)/intervals.length:roomInterval();
+  const harvests=mockCys.map(c=>deriveCycle(c,cfg)).filter(ev=>ev.harvest).map(ev=>ev.harvest.start).sort();
+  const gaps=[]; for(let i=1;i<harvests.length;i++) gaps.push(diffDays(harvests[i-1],harvests[i]));
+  const minGap=gaps.length?Math.min(...gaps):0, avgGap=gaps.length?Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length):0;
+  const binDays=mockCys.map(c=>deriveCycle(c,cfg)).filter(ev=>ev.bins).map(ev=>diffDays(ev.bins.start,ev.bins.end)+1);
+  const minBins=binDays.length?Math.min(...binDays):0;
+  const perYear=(365/avgInt*3);
   const nCrit=conflicts.filter(c=>c.sev==='crit').length, nWarn=conflicts.filter(c=>c.sev==='warn').length;
+  const weekendFlags=conflicts.filter(c=>c.title.includes('weekend')).length;
   return `<div class="grid3" style="margin-bottom:14px">
-    <div class="card"><h3>Cadence</h3><div class="small muted">Room cycle (flower 1 → flower 1)</div><div style="font-size:22px;color:var(--text-bright);font-weight:800">${interval} days</div>
-      <div class="small faint" style="margin-top:4px">${flipsYr.toFixed(2)} flips/room/yr · ~${harvYr} harvests/yr facility-wide · a harvest every <b>${stag}</b> days at this stagger</div></div>
-    <div class="card"><h3>Dry room pressure</h3><div class="small muted">Hang ${D.dryHangDays}d + bins ${D.dryBinDays}d = needs ${dryNeed}d per harvest</div>
-      <div style="font-size:22px;font-weight:800;color:${overflow>0?'var(--orange)':'var(--ok)'}">${overflow>0?'bins out ~'+overflow+'d early':'fits with '+(-overflow)+'d spare'}</div>
-      <div class="small faint" style="margin-top:4px">${overflow>0?'Next harvest hangs before the last one\'s bins finish — bins must move to cure/production after ~'+(stag-D.dryHangDays)+' days instead of '+D.dryBinDays+'.':'Dry room clears before the next harvest arrives.'}</div></div>
-    <div class="card"><h3>Mock conflicts</h3><div style="font-size:22px;font-weight:800;color:${nCrit?'var(--red)':nWarn?'var(--orange)':'var(--ok)'}">${nCrit} critical · ${nWarn} warnings</div>
-      <div class="small faint" style="margin-top:4px">Full list below the timeline. Adjust stagger or per-cycle dates and regenerate to compare scenarios.</div></div>
+    <div class="card"><h3>Throughput</h3><div style="font-size:22px;color:var(--text-bright);font-weight:800">${perYear.toFixed(1)} harvests / yr</div>
+      <div class="small faint" style="margin-top:4px">${(365/avgInt).toFixed(2)} flips/room/yr · ${Math.round(avgInt)}-day room cycle · a harvest every ${avgGap} days (min gap ${minGap}d)</div></div>
+    <div class="card"><h3>Dry room</h3><div style="font-size:22px;font-weight:800;color:${minBins>=(5)?'var(--ok)':'var(--orange)'}">${minBins}d min in bins</div>
+      <div class="small faint" style="margin-top:4px">Hang ${D.dryHangDays}d protected on every harvest · your rule: bins can move to cure after 5d — this plan gives ${minBins}–${binDays.length?Math.max(...binDays):0}d</div></div>
+    <div class="card"><h3>Alerts</h3><div style="font-size:22px;font-weight:800;color:${nCrit?'var(--red)':nWarn?'var(--orange)':'var(--ok)'}">${nCrit} critical · ${nWarn} warnings</div>
+      <div class="small faint" style="margin-top:4px">${weekendFlags} weekend heads-ups. Full list below — switch templates or hand-tweak bars to compare.</div></div>
   </div>`;
 }
 
@@ -1306,22 +1360,28 @@ function renderPlanner(){
     if(!items.length) return '';
     return `<div class="card" style="margin-top:14px;padding:0"><h3 style="padding:14px 16px 0">${sv==='crit'?'⛔ Critical':sv==='warn'?'⚠️ Warnings':'ℹ️ Heads-up'} <span class="muted">(${items.length})</span></h3>${items.map(row).join('')}</div>`;
   }).join('');
+  const tpl=M.settings.template||'even';
 
   $('#main').innerHTML=`
   <div class="pagehead"><div><h2>3-Room Planner <span class="badge info" style="vertical-align:middle">sandbox</span></h2>
-    <div class="sub">Mock schedule only — nothing here touches the actual timeline. Generate a stagger, read the flags, tweak, repeat.</div></div>
+    <div class="sub">Mock schedule only — nothing here touches the actual calendar.</div></div>
     <div class="hd-actions">${headerButtons()}</div></div>
 
   <div class="card" style="margin-bottom:14px"><h3>Plan generator</h3>
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Template</label>
+        <select id="pl-template" ${ro} onchange="$('#pl-stagger').disabled=this.value==='weeklock'">
+          <option value="weeklock" ${tpl==='weeklock'?'selected':''}>Weekday-locked · 10-week cycle (recommended)</option>
+          <option value="even" ${tpl==='even'?'selected':''}>Max throughput · tightest cycle (weekdays drift)</option>
+        </select></div>
       <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">F1 flower day 1 (anchor)</label><input type="date" id="pl-anchor" value="${esc(M.settings.anchor)}" ${ro}></div>
-      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Stagger between rooms (days)</label><input type="number" id="pl-stagger" value="${M.settings.staggerDays}" style="width:90px" ${ro}></div>
-      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Cycles per room</label><input type="number" id="pl-per" value="${M.settings.perRoom}" style="width:80px" min="1" max="6" ${ro}></div>
-      ${isAdmin()?`<button class="btn primary" onclick="genMockPlan()">Generate mock plan</button>
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Stagger (days)</label><input type="number" id="pl-stagger" value="${M.settings.staggerDays}" style="width:80px" ${ro} ${tpl==='weeklock'?'disabled':''}></div>
+      <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Cycles per room</label><input type="number" id="pl-per" value="${M.settings.perRoom}" style="width:70px" min="1" max="6" ${ro}></div>
+      ${isAdmin()?`<button class="btn primary" onclick="genMockPlan()">Generate</button>
       <button class="btn" onclick="clearMockPlan()" ${mockCys.length?'':'disabled'}>Clear</button>`:''}
-      <span class="small faint">even 3-way stagger = ~${Math.round(roomInterval()/3)} days · F3 sized at ${(S.config.rooms.find(r=>r.id==='F3')||{}).lights||77} lights</span>
     </div>
-    <div class="small faint" style="margin-top:8px">Generator uses your Settings defaults (veg ${S.config.defaults.cutToRackDays}d clone + ${S.config.defaults.rackToRoomDays}d rack, flower→harvest d${S.config.defaults.harvestPlanDay}, flip ${S.config.defaults.flipDays}d). Click any bar to hand-tweak that mock cycle, then re-read the flags. The plan saves with Publish so Matt & David see the same scenario.</div>
+    <div class="small faint" style="margin-top:8px"><b style="color:var(--text-dim)">Weekday-locked:</b> anchor snaps to a Tuesday, then every event repeats on the same weekday forever — clone cut Mon · transplant to rack Mon · transplant to room Tue · defoles start Mon · FF harvest Mon–Tue · harvest Wed–Thu · flip Fri–Mon. Rooms offset 21/21/28 days; harvest at flower day 65; defoles auto-shifted per room (some run day 14/35 instead of 21/42) so no defole ever lands on another room's harvest; bins auto-capped to your out-after-5d rule.
+    <br><b style="color:var(--text-dim)">Max throughput:</b> 68-day room cycle from your Settings — ~half a harvest more per year, but event weekdays drift and weekend flags pile up. The plan saves with Publish so Matt & David see the same scenario.</div>
   </div>
 
   ${mockCys.length?plannerStats(mockCys,cfg,conflicts):''}
@@ -1330,7 +1390,7 @@ function renderPlanner(){
     ${zoomControls()}
     <button class="btn small" onclick="scrollToToday('pl-scroll')">↦ Today</button>
   </div>
-  ${mockCys.length?buildTimeline(mockCys,cfg,conflicts,{allRooms:true,extendPast:true,scrollId:'pl-scroll'}):'<div class="card"><div class="empty">No mock plan yet — set an anchor date and hit <b>Generate mock plan</b>.</div></div>'}
+  ${mockCys.length?buildTimeline(mockCys,cfg,conflicts,{allRooms:true,extendPast:true,scrollId:'pl-scroll'}):'<div class="card"><div class="empty">No mock plan yet — pick a template, set the anchor, and hit <b>Generate</b>.</div></div>'}
   ${confHtml}`;
   attachTips();
   if(mockCys.length) scrollToToday('pl-scroll');
