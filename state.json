@@ -2,7 +2,7 @@
   "meta": {
     "app": "CCGL Cultivation Schedule",
     "version": 1,
-    "updatedAt": "2026-07-15",
+    "updatedAt": "2026-07-20",
     "updatedBy": "Dan"
   },
   "config": {
@@ -25,7 +25,7 @@
       {
         "name": "Guest",
         "role": "guest",
-        "pw": "growlab"
+        "pw": "ccgl"
       }
     ],
     "publish": {
@@ -73,7 +73,7 @@
       "ffHarvestDays": 2,
       "dryHarvestDays": 2,
       "harvestPlanDay": 63,
-      "flipDays": 4,
+      "flipDays": 7,
       "dryHangDays": 14,
       "dryBinDays": 14,
       "overagePct": 70,
@@ -451,7 +451,7 @@
       "estimated": true,
       "dates": {
         "cloneCut": "2026-06-24",
-        "transplantRack": "2026-07-15",
+        "transplantRack": "2026-07-16",
         "transplantRoom": "2026-07-25",
         "flowerDay1": "2026-07-25"
       },
@@ -955,7 +955,7 @@
   "mock": {
     "settings": {
       "anchor": "2026-09-11",
-      "staggerDays": 25,
+      "staggerDays": 26,
       "perRoom": 3
     },
     "cycles": [
@@ -1011,10 +1011,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-09-05",
-          "transplantRack": "2026-09-26",
-          "transplantRoom": "2026-10-06",
-          "flowerDay1": "2026-10-06"
+          "cloneCut": "2026-09-06",
+          "transplantRack": "2026-09-27",
+          "transplantRoom": "2026-10-07",
+          "flowerDay1": "2026-10-07"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1026,10 +1026,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-11-13",
-          "transplantRack": "2026-12-04",
-          "transplantRoom": "2026-12-14",
-          "flowerDay1": "2026-12-14"
+          "cloneCut": "2026-11-14",
+          "transplantRack": "2026-12-05",
+          "transplantRoom": "2026-12-15",
+          "flowerDay1": "2026-12-15"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1041,10 +1041,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2027-01-21",
-          "transplantRack": "2027-02-11",
-          "transplantRoom": "2027-02-21",
-          "flowerDay1": "2027-02-21"
+          "cloneCut": "2027-01-22",
+          "transplantRack": "2027-02-12",
+          "transplantRoom": "2027-02-22",
+          "flowerDay1": "2027-02-22"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1056,10 +1056,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-09-30",
-          "transplantRack": "2026-10-21",
-          "transplantRoom": "2026-10-31",
-          "flowerDay1": "2026-10-31"
+          "cloneCut": "2026-10-02",
+          "transplantRack": "2026-10-23",
+          "transplantRoom": "2026-11-02",
+          "flowerDay1": "2026-11-02"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1071,10 +1071,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-12-08",
-          "transplantRack": "2026-12-29",
-          "transplantRoom": "2027-01-08",
-          "flowerDay1": "2027-01-08"
+          "cloneCut": "2026-12-10",
+          "transplantRack": "2026-12-31",
+          "transplantRoom": "2027-01-10",
+          "flowerDay1": "2027-01-10"
         },
         "overrides": {},
         "notes": "planner mock"
@@ -1086,10 +1086,10 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2027-02-15",
-          "transplantRack": "2027-03-08",
-          "transplantRoom": "2027-03-18",
-          "flowerDay1": "2027-03-18"
+          "cloneCut": "2027-02-17",
+          "transplantRack": "2027-03-10",
+          "transplantRoom": "2027-03-20",
+          "flowerDay1": "2027-03-20"
         },
         "overrides": {},
         "notes": "planner mock"
