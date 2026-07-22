@@ -1405,106 +1405,132 @@ function momStore(){
 }
 const MOM_PLAN={cycle:70,stag:21}; // weekday-locked 3-room plan
 
-function momModel(){
-  const D=S.config.defaults, M=momStore();
+// peak moms for a given set of assumptions (holds plan + order size constant)
+function momPeak(cutsPerMom,sessions,growWks){
+  const D=S.config.defaults;
   const rF12=roomOf('F1'), rF3=roomOf('F3');
   const over=(D.overagePct||70)/100;
   const cutF12=Math.ceil((rF12.slots||12)*(rF12.clonesPerSlot||90)*(1+over));
   const cutF3 =Math.ceil((rF3.slots||12)*(rF3.clonesPerSlot||59)*(1+over));
-  const yld=Math.max(1,M.cutsPerMom*M.sessions);
+  const yld=Math.max(1,cutsPerMom*sessions);
   const momF12=Math.ceil(cutF12/yld), momF3=Math.ceil(cutF3/yld);
-  const growDays=M.growWks*7;
-  const lead=(D.cutToRackDays||21)+(D.rackToRoomDays||10);
-  // build cut events: 3 rooms × 6 cycles
+  const growDays=growWks*7, lead=(D.cutToRackDays||21)+(D.rackToRoomDays||10);
+  const M=momStore();
   const events=[];
-  ['F1','F2','F3'].forEach((rm,i)=>{
-    for(let k=0;k<6;k++){
-      const flower=addISO(M.anchor,i*MOM_PLAN.stag+k*MOM_PLAN.cycle);
-      events.push({room:rm,cut:addISO(flower,-lead),moms:(rm==='F3'?momF3:momF12),cuts:(rm==='F3'?cutF3:cutF12)});
-    }
-  });
-  // rolling window peak: at each cut date, sum moms of events with cut in [d, d+growDays]
-  let peak=0,peakDate=null;
+  ['F1','F2','F3'].forEach((rm,i)=>{ for(let k=0;k<6;k++){
+    const flower=addISO(M.anchor,i*MOM_PLAN.stag+k*MOM_PLAN.cycle);
+    events.push({room:rm,cut:addISO(flower,-lead),moms:(rm==='F3'?momF3:momF12)});
+  }});
+  let peak=0,peakDate=null,batches=[];
   events.forEach(e=>{
-    const occ=events.filter(x=>x.cut>=e.cut&&x.cut<=addISO(e.cut,growDays)).reduce((s,x)=>s+x.moms,0);
-    if(occ>peak){peak=occ;peakDate=e.cut;}
+    const win=events.filter(x=>x.cut>=e.cut&&x.cut<=addISO(e.cut,growDays));
+    const occ=win.reduce((s,x)=>s+x.moms,0);
+    if(occ>peak){peak=occ;peakDate=e.cut;batches=win.slice().sort((a,b)=>a.cut<b.cut?-1:1);}
   });
-  const flipsYr=365/MOM_PLAN.cycle;
-  const cutsYr=Math.round(flipsYr*(2*cutF12+cutF3));
-  const momsYr=Math.round(flipsYr*(2*momF12+momF3));
-  const avgMoms=Math.round(momsYr/365*growDays);
-  return {cutF12,cutF3,yld,momF12,momF3,growDays,peak,peakDate,cap:M.capacity,cutsYr,momsYr,avgMoms,events,eventsInWindow:Math.max(1,Math.ceil(growDays/MOM_PLAN.stag))};
+  return {peak,peakDate,batches,cutF12,cutF3,momF12,momF3,yld,growDays,cutsYr:null};
 }
-
+function momModel(){
+  const D=S.config.defaults, M=momStore();
+  const p=momPeak(M.cutsPerMom,M.sessions,M.growWks);
+  const flipsYr=365/MOM_PLAN.cycle;
+  const cutsYr=Math.round(flipsYr*(2*p.cutF12+p.cutF3));
+  const momsYr=Math.round(flipsYr*(2*p.momF12+p.momF3));
+  return {...p,cap:M.capacity,cutsYr,momsYr};
+}
+// smallest cuts/mom that still fits capacity (current sessions & grow-up)
+function breakEvenCuts(){
+  const M=momStore();
+  for(let x=1;x<=200;x++){ if(momPeak(x,M.sessions,M.growWks).peak<=M.capacity) return x; }
+  return null;
+}
+// most grow-up weeks that still fits (current cuts/mom & sessions)
+function breakEvenWeeks(){
+  const M=momStore();
+  let best=0;
+  for(let w=2;w<=20;w++){ if(momPeak(M.cutsPerMom,M.sessions,w).peak<=M.capacity) best=w; }
+  return best;
+}
 function setMom(k,v){ momStore()[k]=(k==='anchor'?v:(+v||0)); markDirty(); renderMom(); }
+function setMomLive(k,v){ momStore()[k]=+v||0; /* no full render */ const el=$('#mom-live'); markDirty(); if(el) el.outerHTML=momLiveBlock(); }
+
+function momLiveBlock(){
+  const m=momModel(), M=momStore(), fits=m.peak<=m.cap;
+  const pct=Math.min(100,Math.round(m.peak/Math.max(1,m.cap)*100));
+  const over=m.peak-m.cap;
+  const roomsCol={F1:'#4E9E8E',F2:'#4A90B5',F3:'#9b59b6'};
+  const labels=['about to cut','growing','just started','earlier'];
+  const chips=m.batches.map((b,i)=>`<div style="flex:${b.moms};min-width:52px;background:${roomsCol[b.room]||'#888'};padding:8px 6px;text-align:center;color:#fff;${i>0?'border-left:2px solid var(--bg)':''}">
+      <div style="font-weight:800;font-size:16px" class="mono">${b.moms}</div><div style="font-size:9px;opacity:.9">${b.room} · ${labels[i]||'growing'}</div></div>`).join('');
+  return `<div id="mom-live">
+  <div class="card" style="margin-bottom:16px;border-color:${fits?'#2ecc7155':'#e74c3c55'};background:${fits?'#2ecc7108':'#e74c3c08'}">
+    <div style="font-size:22px;font-weight:800;color:${fits?'var(--ok)':'var(--red)'}">
+      ${fits?`✓ Yes — your ${m.cap}-plant mom room can feed all 3 rooms`:`✗ No — you'd be ${over} moms short of feeding all 3 rooms`}
+    </div>
+    <div class="small muted" style="margin-top:3px">At the busiest moment you need <b style="color:var(--text-bright)">${m.peak} moms</b> alive at once, and the room holds <b style="color:var(--text-bright)">${m.cap}</b>.${fits?` That's ${m.cap-m.peak} to spare.`:''}</div>
+    <!-- gauge -->
+    <div style="margin-top:14px;position:relative;height:34px;background:var(--panel-3);border-radius:8px;overflow:hidden;border:1px solid var(--line)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:${fits?'linear-gradient(90deg,#2ecc71aa,#2ecc71)':'linear-gradient(90deg,#e74c3caa,#e74c3c)'};transition:width .2s"></div>
+      <div style="position:absolute;left:8px;top:0;bottom:0;display:flex;align-items:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000">${m.peak} moms needed at peak</div>
+      <div style="position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font-size:11px;color:var(--text-dim)">room holds ${m.cap}</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Why ${m.peak}, not ${m.momF12}?</h3>
+    <div class="small muted" style="margin-bottom:10px">One order only needs <b>${m.momF12}</b> moms. But three rooms cut on a rolling schedule while a mom takes ${m.growDays} days to grow — so at the busiest moment <b>${m.batches.length} batches</b> are in the room together:</div>
+    <div style="display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--line)">${chips}
+      <div style="display:flex;align-items:center;padding:8px 14px;background:var(--panel-2);font-weight:800;font-size:18px" class="mono">= ${m.peak}</div></div>
+    <div class="small faint" style="margin-top:8px">Shorter grow-up or reused moms = fewer batches overlapping = lower peak.</div>
+  </div></div>`;
+}
 
 function renderMom(){
   const m=momModel(), M=momStore(), ad=isAdmin(), ro=ad?'':'disabled';
-  const fits=m.peak<=m.cap;
-  const verdict=fits?`FITS — ${m.cap-m.peak} plants of headroom`:`OVER CAPACITY by ${m.peak-m.cap} plants`;
-  const tile=(label,val,big)=>`<div class="card" style="text-align:center;padding:14px"><div class="small muted" style="text-transform:uppercase;letter-spacing:.06em">${label}</div><div style="font-size:${big?26:20}px;font-weight:800;color:var(--text-bright);margin-top:4px" class="mono">${val}</div></div>`;
-  // sensitivity grid
-  const cpm=[10,15,20,25,30,40,50,60], weeks=[4,6,8,10,12];
-  const nearest=(arr,v)=>arr.reduce((a,b)=>Math.abs(b-v)<Math.abs(a-v)?b:a);
-  const hereX=nearest(cpm,M.cutsPerMom), hereW=nearest(weeks,M.growWks);
-  const cellVal=(x,w)=>Math.ceil(m.cutF12/(x*M.sessions))*Math.ceil(w*7/MOM_PLAN.stag);
-  let grid=`<table class="tbl" style="text-align:center"><thead><tr><th style="text-align:center">cuts/mom ↓ · weeks →</th>${weeks.map(w=>`<th style="text-align:center${w===hereW?';color:var(--green);border-bottom:2px solid var(--green)':''}">${w}${w===hereW?' ▾':''}</th>`).join('')}</tr></thead><tbody>`;
-  cpm.forEach(x=>{
-    const rowHere=(x===hereX);
-    grid+=`<tr><td style="font-weight:700;color:${rowHere?'var(--green)':'var(--text-bright)'}${rowHere?';border-left:2px solid var(--green)':''}">${rowHere?'▸ ':''}${x}</td>`+weeks.map(w=>{
-      const v=cellVal(x,w), col=v<=m.cap?'#1e5a3a':(v<=m.cap*1.5?'#7a5a1e':'#7a2020');
-      const isHere=(x===hereX&&w===hereW);
-      const bord=isHere?'border:3px solid #8DC63F;box-shadow:inset 0 0 0 1px #0a1628':((rowHere||w===hereW)?'outline:1px solid #8DC63F66;outline-offset:-1px':'');
-      return `<td style="background:${col};color:#fff;font-weight:${isHere?800:600};${bord}">${v}${isHere?' ★':''}</td>`;
-    }).join('')+`</tr>`;
-  });
-  grid+=`</tbody></table>`;
+  const beCuts=breakEvenCuts(), beWeeks=breakEvenWeeks(), fits=m.peak<=m.cap;
+  const slider=(k,min,max,step,val)=>`<input type="range" min="${min}" max="${max}" step="${step}" value="${val}" ${ro} style="width:100%;accent-color:var(--teal)" oninput="setMomLive('${k}',this.value)" onchange="setMom('${k}',this.value)">`;
+  const numin=(k,val,w)=>`<input type="number" value="${val}" ${ro} style="width:${w||70}px" onchange="setMom('${k}',this.value)">`;
 
   $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>Mom Capacity</h2><div class="sub">Can the mom room grow enough moms to feed all three rooms? Based on the weekday-locked plan (70-day cycle, 21-day stagger). Cut-to-kill model.</div></div>
+  <div class="pagehead"><div><h2>Mom Capacity</h2><div class="sub">Can the mom room grow enough moms to feed all three rooms? Drag the sliders to see what it takes.</div></div>
     <div class="hd-actions">${headerButtons()}</div></div>
 
-  <div class="card" style="margin-bottom:14px;border-color:${fits?'#2ecc7155':'#e74c3c55'};background:${fits?'#2ecc7108':'#e74c3c08'}">
-    <div class="small muted" style="text-transform:uppercase;letter-spacing:.08em">Verdict</div>
-    <div style="font-size:24px;font-weight:800;color:${fits?'var(--ok)':'var(--red)'};margin-top:2px">${verdict}</div>
-    <div class="small faint" style="margin-top:4px">Peak load lands around ${fmtR(m.peakDate)} — ${m.eventsInWindow} cut batches maturing in the room at once (grow-up spans ${m.growDays} days).</div>
-  </div>
+  ${momLiveBlock()}
 
-  <div class="grid3" style="margin-bottom:14px">
-    ${tile('Peak moms needed',m.peak,true)}
-    ${tile('Mom room capacity',m.cap,true)}
-    ${tile('Moms per full order',m.momF12,true)}
-  </div>
-  <div class="grid3" style="margin-bottom:16px">
-    ${tile('Cuts per F1/F2 order',m.cutF12.toLocaleString())}
-    ${tile('Cuts per year (3 rooms)',m.cutsYr.toLocaleString())}
-    ${tile('Moms consumed / year',m.momsYr.toLocaleString())}
-  </div>
-
-  <div class="grid2">
+  <div class="grid2" style="margin-bottom:16px">
     <div class="card"><h3>Your numbers ${ad?'':'<span class="faint" style="text-transform:none">(view only)</span>'}</h3>
-      <div class="set-grid">
-        <div class="set-item"><label>Usable cuts per mom / session</label><input type="number" value="${M.cutsPerMom}" ${ro} onchange="setMom('cutsPerMom',this.value)"></div>
-        <div class="set-item"><label>Sessions per mom (1 = cut-to-kill)</label><input type="number" value="${M.sessions}" ${ro} onchange="setMom('sessions',this.value)"></div>
-        <div class="set-item"><label>Weeks to grow a replacement mom</label><input type="number" value="${M.growWks}" ${ro} onchange="setMom('growWks',this.value)"></div>
-        <div class="set-item"><label>Mom room capacity (plants)</label><input type="number" value="${M.capacity}" ${ro} onchange="setMom('capacity',this.value)"></div>
-        <div class="set-item"><label>Plan anchor (F1 flower day 1)</label><input type="date" value="${M.anchor}" ${ro} onchange="setMom('anchor',this.value)"></div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px"><label class="small" style="color:var(--text-dim)">Cuts each mom gives</label><b class="mono" style="color:var(--text-bright)">${M.cutsPerMom}</b></div>
+        ${slider('cutsPerMom',5,100,1,M.cutsPerMom)}
       </div>
-      <div class="small faint" style="margin-top:10px">Order size & overage come from <a href="javascript:nav('settings')">Settings</a> (slots × clones/slot × ${(S.config.defaults.overagePct)}% overage). A mom delivers <b>${m.yld}</b> cuts over its life (${M.cutsPerMom}×${M.sessions}).</div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px"><label class="small" style="color:var(--text-dim)">Weeks to grow a mom</label><b class="mono" style="color:var(--text-bright)">${M.growWks}</b></div>
+        ${slider('growWks',2,14,1,M.growWks)}
+      </div>
+      <div class="set-grid" style="margin-top:4px">
+        <div class="set-item"><label>Times you cut each mom <span class="faint">(1 = cut once & toss)</span></label>${numin('sessions',M.sessions)}</div>
+        <div class="set-item"><label>Mom room capacity (plants)</label>${numin('capacity',M.capacity)}</div>
+      </div>
+      <div class="small faint" style="margin-top:10px">Order size comes from <a href="javascript:nav('settings')">Settings</a> — one room = ${m.cutF12.toLocaleString()} cuts. A mom gives <b>${m.yld}</b> cuts total (${M.cutsPerMom}×${M.sessions}).</div>
     </div>
-    <div class="card"><h3>The three levers</h3>
-      <div class="small" style="line-height:1.5">
-        <b style="color:var(--text-bright)">1 · Bigger moms.</b> Doubling cuts-per-mom halves the moms you must house — the strongest lever.<br>
-        <b style="color:var(--text-bright)">2 · Reuse instead of kill.</b> Sessions per mom &gt; 1 shifts the whole grid down (if moms regrow in time).<br>
-        <b style="color:var(--text-bright)">3 · Trim the ${(S.config.defaults.overagePct)}% overage.</b> Fewer cuts needed → fewer moms. Drop it on proven strains as survival data comes in.
+
+    <div class="card"><h3>The bottom line</h3>
+      <div style="padding:12px;border-radius:8px;background:${fits?'#2ecc7112':'#e74c3c12'};border:1px solid ${fits?'#2ecc7133':'#e74c3c33'};margin-bottom:12px">
+        <div class="small muted">Smallest mom that still fits your ${m.cap}-plant room<br><span class="faint">(at ${M.growWks}-wk grow-up, cutting each mom ${M.sessions}×)</span></div>
+        <div style="font-size:22px;font-weight:800;color:var(--text-bright);margin-top:4px">${beCuts?beCuts+' cuts per mom':'—'}
+          <span style="font-size:13px;font-weight:600;color:${fits?'var(--ok)':'var(--red)'}">${beCuts?(M.cutsPerMom>=beCuts?`· you're at ${M.cutsPerMom} ✓`:`· you're at ${M.cutsPerMom} ✗`):''}</span></div>
+      </div>
+      <div class="small" style="line-height:1.6">
+        Ways to make it fit, strongest first:<br>
+        <b style="color:var(--text-bright)">Bigger moms</b> — more cuts each; the single biggest lever.<br>
+        <b style="color:var(--text-bright)">Reuse moms</b> — cut each mom more than once (raise "times cut" above 1).<br>
+        <b style="color:var(--text-bright)">Faster grow-up</b> — at ${M.cutsPerMom} cuts/mom you can afford up to <b>${beWeeks||'—'} weeks</b> and still fit.<br>
+        <b style="color:var(--text-bright)">Fewer cuts</b> — trim the ${(S.config.defaults.overagePct)}% overage on proven strains.
       </div>
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px"><h3>Sensitivity — peak moms needed <span class="faint" style="text-transform:none">(green cells fit ${m.cap})</span></h3>
-    <div class="small" style="margin-bottom:10px;color:var(--text)"><span style="color:var(--green);font-weight:700">★ You are here:</span> ${M.cutsPerMom} cuts/mom · ${M.growWks}-week grow-up. That's the boxed cell. Change your inputs above and the ★ moves — or just read the grid: down-left (bigger moms, faster grow-up) is where it turns green.</div>
-    ${grid}
-    <div class="small faint" style="margin-top:8px">This grid shows a whole RANGE on purpose, so it doesn't move when you edit one input — instead the ★ marks where your current numbers land. Uses the largest (F1/F2) order and a 21-day min gap (conservative worst case).</div>
+  <div class="card">
+    <div class="small faint">This is the strategic room-sizing view. For the everyday "do I have enough moms to cut this order" check, use the <a href="javascript:nav('calc')">Moms → Cuts</a> tab. Both use the same cuts-per-mom idea; this one adds the three-room timing.</div>
   </div>`;
 }
 
