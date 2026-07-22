@@ -1445,12 +1445,17 @@ function renderMom(){
   const tile=(label,val,big)=>`<div class="card" style="text-align:center;padding:14px"><div class="small muted" style="text-transform:uppercase;letter-spacing:.06em">${label}</div><div style="font-size:${big?26:20}px;font-weight:800;color:var(--text-bright);margin-top:4px" class="mono">${val}</div></div>`;
   // sensitivity grid
   const cpm=[10,15,20,25,30,40,50,60], weeks=[4,6,8,10,12];
+  const nearest=(arr,v)=>arr.reduce((a,b)=>Math.abs(b-v)<Math.abs(a-v)?b:a);
+  const hereX=nearest(cpm,M.cutsPerMom), hereW=nearest(weeks,M.growWks);
   const cellVal=(x,w)=>Math.ceil(m.cutF12/(x*M.sessions))*Math.ceil(w*7/MOM_PLAN.stag);
-  let grid=`<table class="tbl" style="text-align:center"><thead><tr><th style="text-align:center">cuts/mom ↓ · weeks →</th>${weeks.map(w=>`<th style="text-align:center">${w}</th>`).join('')}</tr></thead><tbody>`;
+  let grid=`<table class="tbl" style="text-align:center"><thead><tr><th style="text-align:center">cuts/mom ↓ · weeks →</th>${weeks.map(w=>`<th style="text-align:center${w===hereW?';color:var(--green);border-bottom:2px solid var(--green)':''}">${w}${w===hereW?' ▾':''}</th>`).join('')}</tr></thead><tbody>`;
   cpm.forEach(x=>{
-    grid+=`<tr><td style="font-weight:700;color:var(--text-bright)">${x}</td>`+weeks.map(w=>{
+    const rowHere=(x===hereX);
+    grid+=`<tr><td style="font-weight:700;color:${rowHere?'var(--green)':'var(--text-bright)'}${rowHere?';border-left:2px solid var(--green)':''}">${rowHere?'▸ ':''}${x}</td>`+weeks.map(w=>{
       const v=cellVal(x,w), col=v<=m.cap?'#1e5a3a':(v<=m.cap*1.5?'#7a5a1e':'#7a2020');
-      return `<td style="background:${col};color:#fff;font-weight:600">${v}</td>`;
+      const isHere=(x===hereX&&w===hereW);
+      const bord=isHere?'border:3px solid #8DC63F;box-shadow:inset 0 0 0 1px #0a1628':((rowHere||w===hereW)?'outline:1px solid #8DC63F66;outline-offset:-1px':'');
+      return `<td style="background:${col};color:#fff;font-weight:${isHere?800:600};${bord}">${v}${isHere?' ★':''}</td>`;
     }).join('')+`</tr>`;
   });
   grid+=`</tbody></table>`;
@@ -1496,9 +1501,10 @@ function renderMom(){
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px"><h3>Sensitivity — peak moms needed <span class="faint" style="text-transform:none">(green = fits ${m.cap})</span></h3>
+  <div class="card" style="margin-top:14px"><h3>Sensitivity — peak moms needed <span class="faint" style="text-transform:none">(green cells fit ${m.cap})</span></h3>
+    <div class="small" style="margin-bottom:10px;color:var(--text)"><span style="color:var(--green);font-weight:700">★ You are here:</span> ${M.cutsPerMom} cuts/mom · ${M.growWks}-week grow-up. That's the boxed cell. Change your inputs above and the ★ moves — or just read the grid: down-left (bigger moms, faster grow-up) is where it turns green.</div>
     ${grid}
-    <div class="small faint" style="margin-top:8px">Rows = cuts per mom, columns = weeks to grow a mom. Uses the largest (F1/F2) order and a 21-day min gap — the conservative worst case. Fastest routes into the green: bigger moms or a shorter grow-up.</div>
+    <div class="small faint" style="margin-top:8px">This grid shows a whole RANGE on purpose, so it doesn't move when you edit one input — instead the ★ marks where your current numbers land. Uses the largest (F1/F2) order and a 21-day min gap (conservative worst case).</div>
   </div>`;
 }
 
