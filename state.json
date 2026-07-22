@@ -2,7 +2,7 @@
   "meta": {
     "app": "CCGL Cultivation Schedule",
     "version": 1,
-    "updatedAt": "2026-07-20",
+    "updatedAt": "2026-07-22",
     "updatedBy": "Dan"
   },
   "config": {
@@ -954,9 +954,10 @@
   ],
   "mock": {
     "settings": {
-      "anchor": "2026-06-25",
-      "staggerDays": 25,
-      "perRoom": 3
+      "anchor": "2026-06-30",
+      "staggerDays": 21,
+      "perRoom": 3,
+      "template": "even"
     },
     "cycles": [
       {
@@ -966,13 +967,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-05-25",
-          "transplantRack": "2026-06-15",
-          "transplantRoom": "2026-06-25",
-          "flowerDay1": "2026-06-25"
+          "cloneCut": "2026-05-30",
+          "transplantRack": "2026-06-20",
+          "transplantRoom": "2026-06-30",
+          "flowerDay1": "2026-06-30"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F1-2",
@@ -981,13 +982,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-08-02",
-          "transplantRack": "2026-08-23",
-          "transplantRoom": "2026-09-02",
-          "flowerDay1": "2026-09-02"
+          "cloneCut": "2026-08-12",
+          "transplantRack": "2026-09-02",
+          "transplantRoom": "2026-09-12",
+          "flowerDay1": "2026-09-12"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F1-3",
@@ -996,13 +997,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-10-10",
-          "transplantRack": "2026-10-31",
-          "transplantRoom": "2026-11-10",
-          "flowerDay1": "2026-11-10"
+          "cloneCut": "2026-10-25",
+          "transplantRack": "2026-11-15",
+          "transplantRoom": "2026-11-25",
+          "flowerDay1": "2026-11-25"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F2-1",
@@ -1011,13 +1012,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-06-19",
-          "transplantRack": "2026-07-10",
-          "transplantRoom": "2026-07-20",
-          "flowerDay1": "2026-07-20"
+          "cloneCut": "2026-06-20",
+          "transplantRack": "2026-07-11",
+          "transplantRoom": "2026-07-21",
+          "flowerDay1": "2026-07-21"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F2-2",
@@ -1026,13 +1027,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-08-27",
-          "transplantRack": "2026-09-17",
-          "transplantRoom": "2026-09-27",
-          "flowerDay1": "2026-09-27"
+          "cloneCut": "2026-09-02",
+          "transplantRack": "2026-09-23",
+          "transplantRoom": "2026-10-03",
+          "flowerDay1": "2026-10-03"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F2-3",
@@ -1041,13 +1042,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-11-04",
-          "transplantRack": "2026-11-25",
-          "transplantRoom": "2026-12-05",
-          "flowerDay1": "2026-12-05"
+          "cloneCut": "2026-11-15",
+          "transplantRack": "2026-12-06",
+          "transplantRoom": "2026-12-16",
+          "flowerDay1": "2026-12-16"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F3-1",
@@ -1056,13 +1057,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-07-14",
-          "transplantRack": "2026-08-04",
-          "transplantRoom": "2026-08-14",
-          "flowerDay1": "2026-08-14"
+          "cloneCut": "2026-07-11",
+          "transplantRack": "2026-08-01",
+          "transplantRoom": "2026-08-11",
+          "flowerDay1": "2026-08-11"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F3-2",
@@ -1071,13 +1072,13 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-09-21",
-          "transplantRack": "2026-10-12",
-          "transplantRoom": "2026-10-22",
-          "flowerDay1": "2026-10-22"
+          "cloneCut": "2026-09-23",
+          "transplantRack": "2026-10-14",
+          "transplantRoom": "2026-10-24",
+          "flowerDay1": "2026-10-24"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       },
       {
         "id": "P·F3-3",
@@ -1086,14 +1087,55 @@
         "archived": false,
         "estimated": false,
         "dates": {
-          "cloneCut": "2026-11-29",
-          "transplantRack": "2026-12-20",
-          "transplantRoom": "2026-12-30",
-          "flowerDay1": "2026-12-30"
+          "cloneCut": "2026-12-06",
+          "transplantRack": "2026-12-27",
+          "transplantRoom": "2027-01-06",
+          "flowerDay1": "2027-01-06"
         },
         "overrides": {},
-        "notes": "planner mock"
+        "notes": "even-stagger template"
       }
     ]
+  },
+  "momInv": {
+    "yield": {
+      "S": 40,
+      "M": 44,
+      "L": 50
+    },
+    "rows": [
+      {
+        "label": "Lion's Breath",
+        "age": 8,
+        "size": "L",
+        "count": 10
+      },
+      {
+        "label": "Purple Push Pop",
+        "age": 8,
+        "size": "L",
+        "count": 10
+      },
+      {
+        "label": "Alien Marker",
+        "age": 8,
+        "size": "L",
+        "count": 10
+      },
+      {
+        "label": "Black Maple",
+        "age": 8,
+        "size": "L",
+        "count": 10
+      }
+    ],
+    "cutsNeeded": 1836
+  },
+  "momCapacity": {
+    "cutsPerMom": 62,
+    "sessions": 1,
+    "growWks": 8,
+    "capacity": 80,
+    "anchor": "2026-09-11"
   }
 }
