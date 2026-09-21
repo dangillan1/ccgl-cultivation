@@ -472,7 +472,8 @@
         "harvestStart": "2026-10-07",
         "harvestEnd": "2026-10-08",
         "flipStart": "2026-10-09",
-        "flipEnd": "2026-10-16"
+        "flipEnd": "2026-10-16",
+        "ffHarvestEnd": "2026-10-05"
       },
       "notes": "Current F2 cycle (last rack-vegged batch). Flower day 1 = 8/9 per sheet (Flower 38 on 9/15). Defoles 9/16-18 + 9/21-25. Cut Powder A 9/27. FF harvest 10/1 Papaya, 10/2 ½ Rainbow + 20K Lions, 10/5 finish 20K Lions. Dry harvest 10/7-8. Room flip 10/9-10/16."
     },
@@ -495,7 +496,8 @@
         "harvestStart": "2026-11-18",
         "harvestEnd": "2026-11-19",
         "flipStart": "2026-11-20",
-        "flipEnd": "2026-11-27"
+        "flipEnd": "2026-11-27",
+        "ffHarvestEnd": "2026-11-16"
       },
       "notes": "Current F1 cycle — first batch vegged in place (20 days, 9/1-9/20; standard is now 10). Flower day 1 = 9/21. Sheet defoles: 10/11-15 w/ PH, 10/18-22 w/ PH (extra pass, not modeled), 11/1-5. Cut Powder A 11/3; cut clones for F1H11 11/9. FF harvest 11/12-13 + 11/16. Dry harvest 11/18-19. Waste/room flip 11/20-11/27."
     },
@@ -518,7 +520,8 @@
         "harvestStart": "2026-12-28",
         "harvestEnd": "2026-12-29",
         "flipStart": "2026-12-30",
-        "flipEnd": "2027-01-05"
+        "flipEnd": "2027-01-05",
+        "ffHarvestEnd": "2026-12-23"
       },
       "notes": "Planned from sheet 9/21/26. Cut 9/27, transplant to F2 10/19 (veg in place 10d), flip to flower 10/29. Defoles 11/17-20, 12/7-11 (Cut Powder A 12/11). Cut clones for F2H12 12/17. FF harvest 12/21-23, dry harvest 12/28-29, room flip 12/30-1/5."
     },
@@ -541,7 +544,8 @@
         "harvestStart": "2027-02-08",
         "harvestEnd": "2027-02-09",
         "flipStart": "2027-02-10",
-        "flipEnd": "2027-02-16"
+        "flipEnd": "2027-02-16",
+        "ffHarvestEnd": "2027-02-05"
       },
       "notes": "Planned from sheet 9/21/26. Cut 11/9, transplant to F1 11/30 (veg in place 10d), flip to flower 12/10. Defoles: skirt 12/28-30, 1/4-6 (extra pass, not modeled), 1/18-22 (Cut Powder A 1/22). Cut clones for F1H12 1/28. FF harvest 2/3-5, dry harvest 2/8-9, room flip 2/10-2/16."
     }

@@ -509,7 +509,9 @@ function deriveCycle(cy,cfg){
     const d2=o.defole2Start||addISO(f1,D.defole2Day-1);
     ev.defole1={start:d1,end:o.defole1End||addISO(d1,D.defoleLen-1),kind:'defole',n:1};
     ev.defole2={start:d2,end:o.defole2End||addISO(d2,D.defoleLen-1),kind:'defole',n:2};
-    ev.ff     ={start:ffStart,end:addISO(hStart,-1),kind:'ff'};
+    // FF end: explicit override > (if start overridden) start+ffDays-1 > day before dry harvest
+    const ffEnd = o.ffHarvestEnd || (o.ffHarvestStart ? addISO(ffStart,ffDays-1) : addISO(hStart,-1));
+    ev.ff     ={start:ffStart,end:(ffEnd<ffStart?ffStart:ffEnd),kind:'ff'};
     ev.harvest={start:hStart,end:hEnd,kind:'harvest'};
     const flS=o.flipStart||addISO(hEnd,1);
     ev.flip   ={start:flS,end:o.flipEnd||addISO(flS,D.flipDays-1),kind:'flip'};
@@ -1017,7 +1019,7 @@ function openCycle(id){
     <div class="full"><label>Overrides <span style="text-transform:none">(leave blank to use the auto-built date)</span></label></div>
     <div><label class="small">Defole 1 start <span class="faint">(auto: flower d${D.defole1Day})</span></label>${dateIn('defole1Start',o.defole1Start)}</div>
     <div><label class="small">Defole 2 start <span class="faint">(auto: d${D.defole2Day})</span></label>${dateIn('defole2Start',o.defole2Start)}</div>
-    <div><label class="small">FF harvest start <span class="faint">(auto: ${D.ffHarvestDays}d pre-harvest)</span></label>${dateIn('ffHarvestStart',o.ffHarvestStart)}</div>
+    <div><label class="small">FF harvest start / end <span class="faint">(auto: ${D.ffHarvestDays}d pre-harvest)</span></label><div style="display:flex;gap:6px">${dateIn('ffHarvestStart',o.ffHarvestStart)}${dateIn('ffHarvestEnd',o.ffHarvestEnd)}</div></div>
     <div><label class="small">Harvest start <span class="faint">(auto: flower d${D.harvestPlanDay})</span></label>${dateIn('harvestStart',o.harvestStart)}</div>
     <div><label class="small">Harvest end</label>${dateIn('harvestEnd',o.harvestEnd)}</div>
     <div><label class="small">Flip start / end</label><div style="display:flex;gap:6px">${dateIn('flipStart',o.flipStart)}${dateIn('flipEnd',o.flipEnd)}</div></div>
@@ -1040,7 +1042,7 @@ function saveCycle(){
   const v=k=>$('#cy-'+k).value||null;
   const dates={cloneCut:v('cloneCut'),transplantRoom:v('transplantRoom'),flowerDay1:v('flowerDay1')};
   const overrides={};
-  ['defole1Start','defole2Start','ffHarvestStart','harvestStart','harvestEnd','flipStart','flipEnd'].forEach(k=>{ if(v(k)) overrides[k]=v(k); });
+  ['defole1Start','defole2Start','ffHarvestStart','ffHarvestEnd','harvestStart','harvestEnd','flipStart','flipEnd'].forEach(k=>{ if(v(k)) overrides[k]=v(k); });
   if(EDIT_ID){
     const c=cycleById(EDIT_ID); c.dates=dates; c.overrides=overrides; c.notes=$('#cy-notes').value; c.estimated=$('#cy-est').checked;
   }else{
