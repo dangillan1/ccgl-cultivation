@@ -2,8 +2,8 @@
   "meta": {
     "app": "CCGL Cultivation Schedule",
     "version": 1,
-    "updatedAt": "2026-07-22",
-    "updatedBy": "Dan"
+    "updatedAt": "2026-09-21",
+    "updatedBy": "Dan (sheet import v1.8)"
   },
   "config": {
     "users": [
@@ -77,15 +77,22 @@
       "dryHangDays": 14,
       "dryBinDays": 14,
       "overagePct": 70,
-      "cutToRackDays": 21,
-      "rackToRoomDays": 10,
-      "roomToFlowerDays": 0,
-      "harvestProximityDays": 2
+      "harvestProximityDays": 2,
+      "cutToRoomDays": 21,
+      "roomVegDays": 10
     },
     "holidays": [
       {
         "date": "2026-09-07",
         "name": "Labor Day"
+      },
+      {
+        "date": "2026-10-12",
+        "name": "Columbus Day"
+      },
+      {
+        "date": "2026-11-11",
+        "name": "Veterans Day"
       },
       {
         "date": "2026-11-26",
@@ -97,11 +104,15 @@
       },
       {
         "date": "2026-12-24",
-        "name": "Christmas Eve"
+        "name": "Christmas Eve (half day)"
       },
       {
         "date": "2026-12-25",
         "name": "Christmas"
+      },
+      {
+        "date": "2026-12-31",
+        "name": "New Year's Eve (half day)"
       },
       {
         "date": "2027-01-01",
@@ -429,7 +440,7 @@
     {
       "id": "F1H09",
       "room": "F1",
-      "archived": false,
+      "archived": true,
       "estimated": false,
       "dates": {
         "cloneCut": "2026-05-06",
@@ -442,35 +453,97 @@
         "harvestStart": "2026-08-19",
         "harvestEnd": "2026-08-21"
       },
-      "notes": "Current F1 cycle. FF harvest 8/17-18, dry harvest 8/19-21 per sheet plan. Veg 5/29-6/13 on rack."
+      "notes": "Current F1 cycle. FF harvest 8/17-18, dry harvest 8/19-21 per sheet plan. Veg 5/29-6/13 on rack. Harvested 8/19-21; archived 9/21/26."
     },
     {
       "id": "F2H10",
       "room": "F2",
       "archived": false,
-      "estimated": true,
+      "estimated": false,
       "dates": {
         "cloneCut": "2026-06-24",
-        "transplantRack": "2026-07-16",
         "transplantRoom": "2026-07-25",
-        "flowerDay1": "2026-07-25"
+        "flowerDay1": "2026-08-09"
       },
-      "overrides": {},
-      "notes": "Current F2 cycle. Transplant-to-room / flower day 1 estimated at 7/25 from sheet — confirm."
+      "overrides": {
+        "defole2Start": "2026-09-16",
+        "defole2End": "2026-09-25",
+        "ffHarvestStart": "2026-10-01",
+        "harvestStart": "2026-10-07",
+        "harvestEnd": "2026-10-08",
+        "flipStart": "2026-10-09",
+        "flipEnd": "2026-10-16"
+      },
+      "notes": "Current F2 cycle (last rack-vegged batch). Flower day 1 = 8/9 per sheet (Flower 38 on 9/15). Defoles 9/16-18 + 9/21-25. Cut Powder A 9/27. FF harvest 10/1 Papaya, 10/2 ½ Rainbow + 20K Lions, 10/5 finish 20K Lions. Dry harvest 10/7-8. Room flip 10/9-10/16."
     },
     {
       "id": "F1H10",
       "room": "F1",
       "archived": false,
-      "estimated": true,
+      "estimated": false,
       "dates": {
         "cloneCut": "2026-08-13",
-        "transplantRack": "2026-09-03",
-        "transplantRoom": "2026-09-10",
-        "flowerDay1": "2026-09-11"
+        "transplantRoom": "2026-09-01",
+        "flowerDay1": "2026-09-21"
       },
-      "overrides": {},
-      "notes": "Next F1 cycle. Sheet: transplant to F1 9/10 (hold The Bodhi & Alien Marker on rack until flower day 7 = 9/21); defoles w/ PH planned 9/27-10/1. Sheet's code row says F2H10 from 9/11 — typo, this is F1H10. Rack date estimated."
+      "overrides": {
+        "defole1Start": "2026-10-11",
+        "defole1End": "2026-10-15",
+        "defole2Start": "2026-11-01",
+        "defole2End": "2026-11-05",
+        "ffHarvestStart": "2026-11-12",
+        "harvestStart": "2026-11-18",
+        "harvestEnd": "2026-11-19",
+        "flipStart": "2026-11-20",
+        "flipEnd": "2026-11-27"
+      },
+      "notes": "Current F1 cycle — first batch vegged in place (20 days, 9/1-9/20; standard is now 10). Flower day 1 = 9/21. Sheet defoles: 10/11-15 w/ PH, 10/18-22 w/ PH (extra pass, not modeled), 11/1-5. Cut Powder A 11/3; cut clones for F1H11 11/9. FF harvest 11/12-13 + 11/16. Dry harvest 11/18-19. Waste/room flip 11/20-11/27."
+    },
+    {
+      "id": "F2H11",
+      "room": "F2",
+      "archived": false,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2026-09-27",
+        "transplantRoom": "2026-10-19",
+        "flowerDay1": "2026-10-29"
+      },
+      "overrides": {
+        "defole1Start": "2026-11-17",
+        "defole1End": "2026-11-20",
+        "defole2Start": "2026-12-07",
+        "defole2End": "2026-12-11",
+        "ffHarvestStart": "2026-12-21",
+        "harvestStart": "2026-12-28",
+        "harvestEnd": "2026-12-29",
+        "flipStart": "2026-12-30",
+        "flipEnd": "2027-01-05"
+      },
+      "notes": "Planned from sheet 9/21/26. Cut 9/27, transplant to F2 10/19 (veg in place 10d), flip to flower 10/29. Defoles 11/17-20, 12/7-11 (Cut Powder A 12/11). Cut clones for F2H12 12/17. FF harvest 12/21-23, dry harvest 12/28-29, room flip 12/30-1/5."
+    },
+    {
+      "id": "F1H11",
+      "room": "F1",
+      "archived": false,
+      "estimated": true,
+      "dates": {
+        "cloneCut": "2026-11-09",
+        "transplantRoom": "2026-11-30",
+        "flowerDay1": "2026-12-10"
+      },
+      "overrides": {
+        "defole1Start": "2026-12-28",
+        "defole1End": "2026-12-30",
+        "defole2Start": "2027-01-18",
+        "defole2End": "2027-01-22",
+        "ffHarvestStart": "2027-02-03",
+        "harvestStart": "2027-02-08",
+        "harvestEnd": "2027-02-09",
+        "flipStart": "2027-02-10",
+        "flipEnd": "2027-02-16"
+      },
+      "notes": "Planned from sheet 9/21/26. Cut 11/9, transplant to F1 11/30 (veg in place 10d), flip to flower 12/10. Defoles: skirt 12/28-30, 1/4-6 (extra pass, not modeled), 1/18-22 (Cut Powder A 1/22). Cut clones for F1H12 1/28. FF harvest 2/3-5, dry harvest 2/8-9, room flip 2/10-2/16."
     }
   ],
   "cloneOrders": [
@@ -836,7 +909,7 @@
       "room": "F2",
       "cutDate": "2026-06-24",
       "transplantDate": "2026-07-25",
-      "status": "cut",
+      "status": "done",
       "imported": true,
       "slots": [
         {
@@ -896,8 +969,8 @@
       "id": "co-2026-08-13-F1",
       "room": "F1",
       "cutDate": "2026-08-13",
-      "transplantDate": "2026-09-10",
-      "status": "planned",
+      "transplantDate": "2026-09-01",
+      "status": "done",
       "imported": true,
       "slots": [
         {
@@ -950,6 +1023,122 @@
         }
       ],
       "notes": "Feeds F1H10."
+    },
+    {
+      "id": "co-2026-09-27-F2",
+      "room": "F2",
+      "cutDate": "2026-09-27",
+      "transplantDate": "2026-10-19",
+      "status": "planned",
+      "slots": [
+        {
+          "loc": "Row 1 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": ""
+        }
+      ],
+      "notes": "From sheet 9/21/26 — strains TBD."
+    },
+    {
+      "id": "co-2026-11-09-F1",
+      "room": "F1",
+      "cutDate": "2026-11-09",
+      "transplantDate": "2026-11-30",
+      "status": "planned",
+      "slots": [
+        {
+          "loc": "Row 1 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 1 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 2 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 2 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 3 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 3 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 4 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 4 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 5 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 5 Top",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Bottom",
+          "strain": ""
+        },
+        {
+          "loc": "Row 6 Top",
+          "strain": ""
+        }
+      ],
+      "notes": "From sheet 9/21/26 — strains TBD."
     }
   ],
   "mock": {
@@ -968,7 +1157,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-05-30",
-          "transplantRack": "2026-06-20",
           "transplantRoom": "2026-06-30",
           "flowerDay1": "2026-06-30"
         },
@@ -983,7 +1171,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-08-12",
-          "transplantRack": "2026-09-02",
           "transplantRoom": "2026-09-12",
           "flowerDay1": "2026-09-12"
         },
@@ -998,7 +1185,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-10-25",
-          "transplantRack": "2026-11-15",
           "transplantRoom": "2026-11-25",
           "flowerDay1": "2026-11-25"
         },
@@ -1013,7 +1199,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-06-20",
-          "transplantRack": "2026-07-11",
           "transplantRoom": "2026-07-21",
           "flowerDay1": "2026-07-21"
         },
@@ -1028,7 +1213,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-09-02",
-          "transplantRack": "2026-09-23",
           "transplantRoom": "2026-10-03",
           "flowerDay1": "2026-10-03"
         },
@@ -1043,7 +1227,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-11-15",
-          "transplantRack": "2026-12-06",
           "transplantRoom": "2026-12-16",
           "flowerDay1": "2026-12-16"
         },
@@ -1058,7 +1241,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-07-11",
-          "transplantRack": "2026-08-01",
           "transplantRoom": "2026-08-11",
           "flowerDay1": "2026-08-11"
         },
@@ -1073,7 +1255,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-09-23",
-          "transplantRack": "2026-10-14",
           "transplantRoom": "2026-10-24",
           "flowerDay1": "2026-10-24"
         },
@@ -1088,7 +1269,6 @@
         "estimated": false,
         "dates": {
           "cloneCut": "2026-12-06",
-          "transplantRack": "2026-12-27",
           "transplantRoom": "2027-01-06",
           "flowerDay1": "2027-01-06"
         },

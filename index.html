@@ -254,9 +254,8 @@ const DEFAULT_STATE={
       "dryHangDays": 14,
       "dryBinDays": 14,
       "overagePct": 70,
-      "cutToRackDays": 21,
-      "rackToRoomDays": 10,
-      "roomToFlowerDays": 0,
+      "cutToRoomDays": 21,
+      "roomVegDays": 10,
       "harvestProximityDays": 2
     },
     "holidays": [
@@ -485,19 +484,15 @@ function gapDays(a,b){ // days between segments (0 = touching/overlap)
 }
 
 /* ===================== cycle derivation =====================
-   Inputs (cycle.dates): cloneCut, transplantRack, transplantRoom, flowerDay1
+   Inputs (cycle.dates): cloneCut, transplantRoom, flowerDay1  (transplantRack retired in v1.8 — ignored if present)
    Everything else derived from config defaults, overridable per-cycle. */
 function deriveCycle(cy,cfg){
   const D=cfg.defaults, o=cy.overrides||{}, dt=cy.dates||{};
   const ev={};
   const f1=dt.flowerDay1;
   if(dt.cloneCut){
-    const end = dt.transplantRack? addISO(dt.transplantRack,-1) : addISO(dt.cloneCut,(D.cutToRackDays||21)-1);
+    const end = dt.transplantRoom? addISO(dt.transplantRoom,-1) : addISO(dt.cloneCut,(D.cutToRoomDays||21)-1);
     ev.clone={start:dt.cloneCut,end,kind:'clone'};
-  }
-  if(dt.transplantRack){
-    const end = dt.transplantRoom? addISO(dt.transplantRoom,-1) : addISO(dt.transplantRack,(D.rackToRoomDays||10)-1);
-    ev.rack={start:dt.transplantRack,end,kind:'rack'};
   }
   if(dt.transplantRoom && f1 && diffDays(dt.transplantRoom,f1)>0){
     ev.roomVeg={start:dt.transplantRoom,end:addISO(f1,-1),kind:'roomVeg'};
@@ -536,7 +531,6 @@ function cycleStatus(cy,ev){
   if(ev.ff&&within(t,ev.ff)) return {label:'FF Harvest',color:'var(--pink)',phase:'ff'};
   if(ev.flower&&within(t,ev.flower)) return {label:'Flower day '+(ev.flowerDayOf(t)),color:'var(--teal)',phase:'flower'};
   if(ev.roomVeg&&within(t,ev.roomVeg)) return {label:'Veg in room · day '+(diffDays(ev.roomVeg.start,t)+1),color:'var(--green)',phase:'roomVeg'};
-  if(ev.rack&&within(t,ev.rack)) return {label:'Veg on rack · day '+(diffDays(ev.rack.start,t)+1),color:'var(--green)',phase:'rack'};
   if(ev.clone&&within(t,ev.clone)) return {label:'Clone · day '+(diffDays(ev.clone.start,t)+1),color:'var(--cyan)',phase:'clone'};
   if(ev.clone&&t<ev.clone.start) return {label:'Planned · cut '+fmt(ev.clone.start),color:'var(--text-dim)',phase:'planned'};
   return {label:'Planned',color:'var(--text-dim)',phase:'planned'};
@@ -573,7 +567,7 @@ function detectConflicts(state){
         if(overlap(cut,hY)) push('warn',cut.start,'Clone cut during harvest: '+X.cy.id+' × '+Y.cy.id,'Clone cut for '+X.cy.id+' ('+fmt(cut.start)+') falls inside '+Y.cy.id+"'s harvest block.",[X.cy.id,Y.cy.id]);
       }
       // transplant during other room's harvest or flip
-      ['transplantRack','transplantRoom'].forEach(tk=>{
+      ['transplantRoom'].forEach(tk=>{
         const d=X.cy.dates&&X.cy.dates[tk]; if(!d) return;
         if(within(d,hY)) push('info',d,'Transplant during harvest: '+X.cy.id+' × '+Y.cy.id,(tk==='transplantRack'?'Transplant to rack':'Transplant to room')+' for '+X.cy.id+' ('+fmt(d)+') is inside '+Y.cy.id+"'s harvest block.",[X.cy.id,Y.cy.id]);
         if(Y.ev.flip&&within(d,Y.ev.flip)) push('info',d,'Transplant during flip: '+X.cy.id+' × '+Y.cy.id,(tk==='transplantRack'?'Rack':'Room')+' transplant for '+X.cy.id+' while '+roomName(Y.cy.room)+' is mid room-flip.',[X.cy.id,Y.cy.id]);
@@ -587,9 +581,6 @@ function detectConflicts(state){
         if(first.ev.bins&&overlap(first.ev.bins,second.ev.hang)) push('warn',second.ev.hang.start,'Bins must move early: '+first.cy.id+' → '+second.cy.id,first.cy.id+"'s bins are scheduled in the dry room until "+fmt(first.ev.bins.end)+', but '+second.cy.id+' starts hanging '+fmt(second.ev.hang.start)+'. Bins need to move to cure/production '+(diffDays(second.ev.hang.start,first.ev.bins.end)+1)+' day(s) sooner.',[first.cy.id,second.cy.id]);
       }
     }
-    // veg rack occupancy
-    if(A.ev.rack&&B.ev.rack&&overlap(A.ev.rack,B.ev.rack))
-      push('warn',A.ev.rack.start>B.ev.rack.start?A.ev.rack.start:B.ev.rack.start,'Veg rack double-booked: '+A.cy.id+' + '+B.cy.id,'Both cycles are on the veg rack '+fmt(A.ev.rack.start>B.ev.rack.start?A.ev.rack.start:B.ev.rack.start)+'–'+fmt(A.ev.rack.end<B.ev.rack.end?A.ev.rack.end:B.ev.rack.end)+'. Check rack capacity.',[A.cy.id,B.cy.id]);
     // same-room sanity: overlapping occupancy
     if(A.cy.room===B.cy.room&&A.ev.flower&&B.ev.flower){
       const occA={start:(A.cy.dates.transplantRoom||A.ev.flower.start),end:A.ev.flip?A.ev.flip.end:A.ev.flower.end};
@@ -601,8 +592,7 @@ function detectConflicts(state){
   const hol={}; (cfg.holidays||[]).forEach(h=>hol[h.date]=h.name);
   cys.forEach(({cy,ev})=>{
     const checks=[
-      ['Clone cut',cy.dates.cloneCut],['Transplant to rack',cy.dates.transplantRack],
-      ['Transplant to room',cy.dates.transplantRoom],
+      ['Clone cut',cy.dates.cloneCut],['Transplant to room',cy.dates.transplantRoom],
       ['FF harvest start',ev.ff&&ev.ff.start],['Harvest start',ev.harvest&&ev.harvest.start],
       ['Defole 1 start',ev.defole1&&ev.defole1.start],['Defole 2 start',ev.defole2&&ev.defole2.start]
     ];
@@ -648,11 +638,19 @@ async function boot(){
   S = remote || JSON.parse(JSON.stringify(DEFAULT_STATE));
   const draft=localStorage.getItem(LS_DRAFT);
   if(draft){ try{ const d=JSON.parse(draft); if(!remote || (d.meta&&remote.meta&&d.meta.updatedAt>=remote.meta.updatedAt)){ S=d; DIRTY=true; } }catch(e){} }
+  migrateState(S);
   const saved=sessionStorage.getItem(SS_USER);
   if(saved){ try{ USER=JSON.parse(saved); }catch(e){} }
   if(USER) enterApp(); else showLogin();
 }
 
+/* v1.8: veg rack retired — plants go straight into the flower room and veg in place. */
+function migrateState(st){
+  const D=st.config&&st.config.defaults; if(!D) return;
+  if(D.cutToRoomDays==null) D.cutToRoomDays=(D.cutToRackDays||21);
+  if(D.roomVegDays==null)   D.roomVegDays=10;
+  delete D.cutToRackDays; delete D.rackToRoomDays; delete D.roomToFlowerDays;
+}
 function showLogin(){
   $('#login').style.display='flex'; $('#app').classList.remove('on');
   const sel=$('#login-name'); sel.innerHTML=S.config.users.map(u=>`<option>${esc(u.name)}</option>`).join('');
@@ -749,7 +747,7 @@ function tlRange(cys,cfg,extendPast){
   return {s:addISO(s,-3),e};
 }
 
-const KINDCOLOR={clone:'#00cec9',rack:'#8DC63F',roomVeg:'#8DC63Fcc',flower:null,ff:'#e84393',harvest:'#e74c3c',flip:'#5a7088',hang:null,bins:'#f0d5a5',defole:'#f39c12'};
+const KINDCOLOR={clone:'#00cec9',roomVeg:'#8DC63Fcc',flower:null,ff:'#e84393',harvest:'#e74c3c',flip:'#5a7088',hang:null,bins:'#f0d5a5',defole:'#f39c12'};
 
 function laneBars(cycles,kinds,cfg){
   const out=[];
@@ -760,7 +758,6 @@ function laneBars(cycles,kinds,cfg){
       let color=KINDCOLOR[k], label='';
       if(k==='flower'){ color=rm.color; label=c.id; }
       if(k==='roomVeg'){ label='veg'; }
-      if(k==='rack'){ color=rm.color; label=c.id+' · rack veg'; }
       if(k==='clone'){ color=rm.color; label=c.id+' · clones'; }
       if(k==='hang'){ color=rm.color; label=c.id+' · hanging'; }
       if(k==='bins'){ label=c.id+' · bins'; }
@@ -783,7 +780,6 @@ function buildTimeline(shown,cfg,conflicts,opts){
   cfg.rooms.filter(r=>opts.allRooms||r.active||shown.some(c=>c.room===r.id)).forEach(r=>{
     lanes.push({id:r.id,nm:r.name,ds:r.lights+' lights',cycles:shown.filter(c=>c.room===r.id),kinds:['roomVeg','flower','ff','harvest','flip'],h:52});
   });
-  lanes.push({id:'RACK',nm:'Veg Rack',ds:'rack rotation',cycles:shown,kinds:['rack'],h:44});
   lanes.push({id:'CLONE',nm:'Clone / Mom',ds:'cuts & rooting',cycles:shown,kinds:['clone'],h:44});
   lanes.push({id:'DRY',nm:'Dry Room',ds:'hang → bins',cycles:shown,kinds:['hang','bins'],h:60});
 
@@ -840,9 +836,9 @@ function buildTimeline(shown,cfg,conflicts,opts){
       const top=L.kinds.includes('flower')?18:6+b.row*(rowH+3);
       const h=L.kinds.includes('flower')?(L.h-24):rowH;
       const bg=b.kind==='bins'?'#c9a86a':b.color;
-      const op=b.kind==='roomVeg'?'55':(b.kind==='flip'?'66':(b.kind==='rack'?'99':(b.kind==='clone'?'77':(b.kind==='hang'?'aa':''))));
+      const op=b.kind==='roomVeg'?'55':(b.kind==='flip'?'66':(b.kind==='clone'?'77':(b.kind==='hang'?'aa':'')));
       const est=b.cy.estimated?' · est.':'';
-      html+=`<div class="tl-bar" style="left:${x}px;width:${w}px;top:${top}px;height:${h}px;background:${bg}${op}" data-tip="${esc(b.cy.id+' — '+({clone:'Clones (cut → rack)',rack:'Veg on rack',roomVeg:'Veg in room',flower:'Flower',ff:'FF harvest',harvest:'Dry-flower harvest',flip:'Room flip',hang:'Dry room — hanging',bins:'Dry room — in bins'})[b.kind]+' · '+fmtR(b.seg.start)+' – '+fmtR(b.seg.end)+est)}" onclick="openCycle('${b.cy.id}')"><span class="lbl">${w>34?esc(b.label):''}</span></div>`;
+      html+=`<div class="tl-bar" style="left:${x}px;width:${w}px;top:${top}px;height:${h}px;background:${bg}${op}" data-tip="${esc(b.cy.id+' — '+({clone:'Clones (cut → room)',roomVeg:'Veg in room',flower:'Flower',ff:'FF harvest',harvest:'Dry-flower harvest',flip:'Room flip',hang:'Dry room — hanging',bins:'Dry room — in bins'})[b.kind]+' · '+fmtR(b.seg.start)+' – '+fmtR(b.seg.end)+est)}" onclick="openCycle('${b.cy.id}')"><span class="lbl">${w>34?esc(b.label):''}</span></div>`;
     });
     lanesHtml+=`<div class="tl-lane" style="height:${L.h}px">${gridLines}${html}
       <div class="tl-today" style="left:${diffDays(RS,t)*Z}px"></div>
@@ -890,7 +886,7 @@ function zoomControls(){
 function renderTimeline(conflicts){
   const shown=TL_HISTORY?S.cycles:S.cycles.filter(c=>!c.archived);
   $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>F1/F2 Production Calendar</h2><div class="sub">Actual schedule — all rooms, veg rack, clones & dry room · today is ${fmtR(todayISO())}</div></div>
+  <div class="pagehead"><div><h2>F1/F2 Production Calendar</h2><div class="sub">Actual schedule — all rooms, clones & dry room · today is ${fmtR(todayISO())}</div></div>
     <div class="hd-actions">${headerButtons()}</div></div>
   <div class="tl-controls">
     ${zoomControls()}
@@ -908,7 +904,7 @@ function nextUpPanel(){
   const t=todayISO(), items=[];
   S.cycles.filter(c=>!c.archived).forEach(c=>{
     const ev=deriveCycle(c,S.config);
-    [['cloneCut','Clone cut',c.dates.cloneCut],['transplantRack','Transplant → rack',c.dates.transplantRack],['transplantRoom','Transplant → room',c.dates.transplantRoom]].forEach(([k,nm,d])=>{ if(d&&d>=t) items.push({d,nm,cy:c.id}); });
+    [['cloneCut','Clone cut',c.dates.cloneCut],['transplantRoom','Transplant → room',c.dates.transplantRoom]].forEach(([k,nm,d])=>{ if(d&&d>=t) items.push({d,nm,cy:c.id}); });
     if(ev.defole1&&ev.defole1.start>=t) items.push({d:ev.defole1.start,nm:'Defole 1',cy:c.id});
     if(ev.defole2&&ev.defole2.start>=t) items.push({d:ev.defole2.start,nm:'Defole 2',cy:c.id});
     if(ev.ff&&ev.ff.start>=t) items.push({d:ev.ff.start,nm:'FF harvest',cy:c.id});
@@ -976,7 +972,6 @@ function cycleCard(c){
     ${prog}
     <div class="cy-dates">
       <span class="k">Clone cut</span><span class="v mono">${fmtR(d.cloneCut)}</span>
-      <span class="k">→ Rack</span><span class="v mono">${fmtR(d.transplantRack)}</span>
       <span class="k">→ Room</span><span class="v mono">${fmtR(d.transplantRoom)}</span>
       <span class="k">Flower day 1</span><span class="v mono">${fmtR(d.flowerDay1)}</span>
       <span class="k">Defole 1 / 2</span><span class="v mono">${ev.defole1?fmt(ev.defole1.start):'—'} / ${ev.defole2?fmt(ev.defole2.start):'—'}</span>
@@ -993,7 +988,7 @@ function cycleCard(c){
 function renderCycles(){
   const live=S.cycles.filter(c=>!c.archived).sort((a,b)=>(a.dates.flowerDay1||a.dates.cloneCut||'9999')<(b.dates.flowerDay1||b.dates.cloneCut||'9999')?-1:1);
   $('#main').innerHTML=`
-  <div class="pagehead"><div><h2>Cycles</h2><div class="sub">Enter the 4 dates — clone cut, transplant to rack, transplant to room, flower day 1 — and the rest auto-builds.</div></div>
+  <div class="pagehead"><div><h2>Cycles</h2><div class="sub">Enter the 3 dates — clone cut, transplant to room, flower day 1 — and the rest auto-builds. Plants veg in place in the room; flower day 1 is the flip.</div></div>
   <div class="hd-actions">${isAdmin()?'<button class="btn" onclick="openCycle(null)">+ New cycle</button>':''}${headerButtons()}</div></div>
   <div class="grid3">${live.map(cycleCard).join('')||'<div class="empty">No active cycles.</div>'}</div>`;
 }
@@ -1013,11 +1008,10 @@ function openCycle(id){
     <div><label>Room</label><select id="cy-room" ${id?'disabled':''} onchange="$('#cy-code').value=nextCode(this.value)">${S.config.rooms.map(r=>`<option ${c.room===r.id?'selected':''} value="${r.id}">${r.name}</option>`).join('')}</select></div>
     <div><label>Code</label><input id="cy-code" value="${esc(c.id||nextCode('F1'))}" ${id?'disabled':''}></div>
     <div><label>1 · Clone cut</label>${dateIn('cloneCut',c.dates.cloneCut)}</div>
-    <div><label>2 · Transplant → rack</label>${dateIn('transplantRack',c.dates.transplantRack)}<div class="hint">suggest: cut + ${D.cutToRackDays}d</div></div>
-    <div><label>3 · Transplant → room</label>${dateIn('transplantRoom',c.dates.transplantRoom)}<div class="hint">suggest: rack + ${D.rackToRoomDays}d</div></div>
-    <div><label>4 · Flower day 1</label>${dateIn('flowerDay1',c.dates.flowerDay1)}</div>
+    <div><label>2 · Transplant → room (veg day 1)</label>${dateIn('transplantRoom',c.dates.transplantRoom)}<div class="hint">suggest: cut + ${D.cutToRoomDays}d</div></div>
+    <div><label>3 · Flower day 1 (flip)</label>${dateIn('flowerDay1',c.dates.flowerDay1)}<div class="hint">suggest: room + ${D.roomVegDays}d (veg in place)</div></div>
     <div class="full" style="display:flex;gap:8px;align-items:center">
-      ${isAdmin()?`<button class="btn small" onclick="suggestDates()">↪ Suggest 2-4 from clone cut</button>`:''}
+      ${isAdmin()?`<button class="btn small" onclick="suggestDates()">↪ Suggest 2–3 from clone cut</button>`:''}
       <label style="margin:0;display:flex;align-items:center;gap:6px;text-transform:none;font-size:12px"><input type="checkbox" id="cy-est" ${c.estimated?'checked':''} ${ro} style="width:auto"> dates are estimates</label>
     </div>
     <div class="full"><label>Overrides <span style="text-transform:none">(leave blank to use the auto-built date)</span></label></div>
@@ -1039,12 +1033,12 @@ function openCycle(id){
 function suggestDates(){
   const D=S.config.defaults, cut=$('#cy-cloneCut').value;
   if(!cut){ toast('Set the clone cut date first'); return; }
-  const rack=addISO(cut,D.cutToRackDays), room=addISO(rack,D.rackToRoomDays);
-  $('#cy-transplantRack').value=rack; $('#cy-transplantRoom').value=room; $('#cy-flowerDay1').value=addISO(room,D.roomToFlowerDays||0);
+  const room=addISO(cut,D.cutToRoomDays||21);
+  $('#cy-transplantRoom').value=room; $('#cy-flowerDay1').value=addISO(room,D.roomVegDays||10);
 }
 function saveCycle(){
   const v=k=>$('#cy-'+k).value||null;
-  const dates={cloneCut:v('cloneCut'),transplantRack:v('transplantRack'),transplantRoom:v('transplantRoom'),flowerDay1:v('flowerDay1')};
+  const dates={cloneCut:v('cloneCut'),transplantRoom:v('transplantRoom'),flowerDay1:v('flowerDay1')};
   const overrides={};
   ['defole1Start','defole2Start','ffHarvestStart','harvestStart','harvestEnd','flipStart','flipEnd'].forEach(k=>{ if(v(k)) overrides[k]=v(k); });
   if(EDIT_ID){
@@ -1166,8 +1160,8 @@ function openOrder(id){
   <div class="frm">
     <div><label>Room</label><select id="o-room" onchange="orderRoomHint()">${S.config.rooms.map(r=>`<option value="${r.id}" ${o.room===r.id?'selected':''}>${r.name} (${r.clonesPerSlot}/slot)</option>`).join('')}</select></div>
     <div><label>Status</label><select id="o-status"><option ${o.status==='planned'?'selected':''}>planned</option><option ${o.status==='cut'?'selected':''}>cut</option><option ${o.status==='done'?'selected':''}>done</option></select></div>
-    <div><label>Cut date</label><input type="date" id="o-cut" value="${o.cutDate||''}" onchange="if(!$('#o-tp').value)$('#o-tp').value=addISO(this.value,${(D.cutToRackDays||21)+(D.rackToRoomDays||10)})"></div>
-    <div><label>Transplant date</label><input type="date" id="o-tp" value="${o.transplantDate||''}"><div class="hint">suggest: cut + ${(D.cutToRackDays||21)+(D.rackToRoomDays||10)}d</div></div>
+    <div><label>Cut date</label><input type="date" id="o-cut" value="${o.cutDate||''}" onchange="if(!$('#o-tp').value)$('#o-tp').value=addISO(this.value,${(D.cutToRoomDays||21)})"></div>
+    <div><label>Transplant date</label><input type="date" id="o-tp" value="${o.transplantDate||''}"><div class="hint">suggest: cut + ${(D.cutToRoomDays||21)}d</div></div>
     <div class="full"><div id="o-hint" class="notice" style="margin:0"></div></div>
     <div class="full" style="max-height:320px;overflow-y:auto"><table class="tbl"><thead><tr><th style="width:110px">Slot</th><th>Strain</th><th style="width:130px">Note</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="full"><label>Notes</label><textarea id="o-notes" rows="2">${esc(o.notes||'')}</textarea></div>
@@ -1203,7 +1197,7 @@ function renderSettings(){
     ['defole1Day','Defole 1 (flower day)'],['defole2Day','Defole 2 (flower day)'],['defoleLen','Defole pass length (days)'],
     ['ffHarvestDays','FF harvest days (before dry harvest)'],['dryHarvestDays','Dry harvest days'],['flipDays','Room flip days'],
     ['dryHangDays','Dry room: hanging (days)'],['dryBinDays','Dry room: in bins (days)'],
-    ['overagePct','Clone overage %'],['cutToRackDays','Clone cut → rack (days)'],['rackToRoomDays','Rack → room (days)'],
+    ['overagePct','Clone overage %'],['cutToRoomDays','Clone cut → transplant to room (days)'],['roomVegDays','Veg in room before flip (days)'],
     ['harvestProximityDays','Flag harvests within (days)']
   ];
   const ro=!isAdmin()?'disabled':'';
@@ -1250,8 +1244,8 @@ function mockConfig(){
 }
 function roomInterval(harvestDay){
   const D=S.config.defaults;
-  // flower day 1 → next flower day 1: harvest (2d) ends day hd+1, flip 4d, transplant next day
-  return (harvestDay||D.harvestPlanDay)+D.dryHarvestDays+D.flipDays-1;
+  // flower day 1 → next flower day 1: harvest (2d) ends day hd+1, flip, then next batch vegs IN the room before its flip
+  return (harvestDay||D.harvestPlanDay)+D.dryHarvestDays+D.flipDays-1+(D.roomVegDays||10);
 }
 function snapToDow(isoStr,targetDow){ // next date >= isoStr with day-of-week targetDow (0=Sun)
   let d=isoStr; for(let i=0;i<7;i++){ if(dow(d)===targetDow) return d; d=addISO(d,1);} return isoStr;
@@ -1267,18 +1261,18 @@ function genMockPlan(){
   M.cycles=[];
 
   if(template==='weeklock'){
-    /* Weekday-locked 10-week template — every offset is a multiple of 7 so every event
-       repeats on the same weekday forever:
-       f1 = Tuesday · cut Mon (f1-36) · rack Mon (f1-15) · defoles start Mon
-       harvest day 65 (Wed-Thu) · FF Mon-Tue · flip Fri-Mon · next transplant Tue (+70)
-       Room offsets 0/21/42 → harvest gaps 21/21/28.
+    /* Weekday-locked 12-week template (v1.8, veg in room) — room-to-room offsets are multiples of 7
+       so every event repeats on the same weekday forever:
+       f1 = Thursday · cut Mon (f1-31) · transplant to room Mon (f1-10, veg in place 10d) · defoles start Wed
+       harvest day 65 (Thu-Fri) · FF Tue-Wed · flip Sat → next transplant Mon (f1+74) · next f1 Thu (+84)
+       Room offsets 0/28/56 → harvest gaps 28/28/28 (dry room: 14 hang + 14 bins fits exactly).
        Structural collisions solved by per-room defole shifts (all stay Monday starts):
          middle room (21d behind): defole 2 a week early (day 35) — else it lands on the leader's harvest
          third room (42d behind): defole 1 early (day 14) AND defole 2 early (day 35)
          first room: standard day 21 / day 42 */
-    anchor=snapToDow(anchor,2); // Tuesday
-    const interval=70; stag=21;
-    const offs=[0,21,42];
+    anchor=snapToDow(anchor,4); // Thursday
+    const interval=84; stag=28;
+    const offs=[0,28,56];
     ['F1','F2','F3'].forEach((r,i)=>{
       for(let k=0;k<per;k++){
         const f1=addISO(anchor,offs[i]+k*interval);
@@ -1286,7 +1280,7 @@ function genMockPlan(){
         if(i>=1) o.defole2Start=addISO(f1,34);   // day 35
         if(i===2) o.defole1Start=addISO(f1,13);  // day 14
         M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
-          dates:{cloneCut:addISO(f1,-36),transplantRack:addISO(f1,-15),transplantRoom:f1,flowerDay1:f1},
+          dates:{cloneCut:addISO(f1,-31),transplantRoom:addISO(f1,-10),flowerDay1:f1},
           overrides:o,notes:'weekday-locked template'});
       }
     });
@@ -1311,9 +1305,9 @@ function genMockPlan(){
     ['F1','F2','F3'].forEach((r,i)=>{
       for(let k=0;k<per;k++){
         const f1=addISO(anchor,i*stag+k*interval);
-        const troom=f1, track=addISO(troom,-(D.rackToRoomDays||10)), cut=addISO(track,-(D.cutToRackDays||21));
+        const troom=addISO(f1,-(D.roomVegDays||10)), cut=addISO(troom,-(D.cutToRoomDays||21));
         M.cycles.push({id:'P·'+r+'-'+(k+1),room:r,mock:true,archived:false,estimated:false,
-          dates:{cloneCut:cut,transplantRack:track,transplantRoom:troom,flowerDay1:f1},overrides:{},notes:'even-stagger template'});
+          dates:{cloneCut:cut,transplantRoom:troom,flowerDay1:f1},overrides:{},notes:'even-stagger template'});
       }
     });
     M.settings={anchor,staggerDays:stag,perRoom:per,template};
@@ -1373,7 +1367,7 @@ function renderPlanner(){
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
       <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">Template</label>
         <select id="pl-template" ${ro} onchange="$('#pl-stagger').disabled=this.value==='weeklock'">
-          <option value="weeklock" ${tpl==='weeklock'?'selected':''}>Weekday-locked · 10-week cycle (recommended)</option>
+          <option value="weeklock" ${tpl==='weeklock'?'selected':''}>Weekday-locked · 12-week room cycle (recommended)</option>
           <option value="even" ${tpl==='even'?'selected':''}>Max throughput · tightest cycle (weekdays drift)</option>
         </select></div>
       <div><label class="small" style="display:block;color:var(--text-dim);margin-bottom:4px">F1 flower day 1 (anchor)</label><input type="date" id="pl-anchor" value="${esc(M.settings.anchor)}" ${ro}></div>
@@ -1382,8 +1376,8 @@ function renderPlanner(){
       ${isAdmin()?`<button class="btn primary" onclick="genMockPlan()">Generate</button>
       <button class="btn" onclick="clearMockPlan()" ${mockCys.length?'':'disabled'}>Clear</button>`:''}
     </div>
-    <div class="small faint" style="margin-top:8px"><b style="color:var(--text-dim)">Weekday-locked:</b> anchor snaps to a Tuesday, then every event repeats on the same weekday forever — clone cut Mon · transplant to rack Mon · transplant to room Tue · defoles start Mon · FF harvest Mon–Tue · harvest Wed–Thu · flip Fri–Mon. Rooms offset 21/21/28 days; harvest at flower day 65; defoles auto-shifted per room (some run day 14/35 instead of 21/42) so no defole ever lands on another room's harvest; bins auto-capped to your out-after-5d rule.
-    <br><b style="color:var(--text-dim)">Max throughput:</b> 68-day room cycle from your Settings — ~half a harvest more per year, but event weekdays drift and weekend flags pile up. The plan saves with Publish so Matt & David see the same scenario.</div>
+    <div class="small faint" style="margin-top:8px"><b style="color:var(--text-dim)">Weekday-locked:</b> anchor snaps to a Thursday, then every event repeats on the same weekday forever — clone cut Mon · transplant to room Mon (veg in place 10 days) · flip to flower Thu · defoles start Wed · FF harvest Tue–Wed · harvest Thu–Fri · flip Sat→Sun · next batch in Mon. Rooms offset 28/28/28 days (84-day room cycle: 10 veg + 65 flower + 9 flip); harvest at flower day 65; defoles auto-shifted per room (some run day 14/35 instead of 21/42) so no defole ever lands on another room's harvest; bins auto-capped to your out-after-5d rule.
+    <br><b style="color:var(--text-dim)">Max throughput:</b> ${roomInterval()}-day room cycle from your Settings (veg in room + flower + harvest + flip) — ~half a harvest more per year, but event weekdays drift and weekend flags pile up. The plan saves with Publish so Matt & David see the same scenario.</div>
   </div>
 
   ${mockCys.length?plannerStats(mockCys,cfg,conflicts):''}
@@ -1414,7 +1408,7 @@ function momPeak(cutsPerMom,sessions,growWks){
   const cutF3 =Math.ceil((rF3.slots||12)*(rF3.clonesPerSlot||59)*(1+over));
   const yld=Math.max(1,cutsPerMom*sessions);
   const momF12=Math.ceil(cutF12/yld), momF3=Math.ceil(cutF3/yld);
-  const growDays=growWks*7, lead=(D.cutToRackDays||21)+(D.rackToRoomDays||10);
+  const growDays=growWks*7, lead=(D.cutToRoomDays||21)+(D.roomVegDays||10);
   const M=momStore();
   const events=[];
   ['F1','F2','F3'].forEach((rm,i)=>{ for(let k=0;k<6;k++){
